@@ -36,6 +36,11 @@ import {
 import { renderLoadingIndicator } from "../../components/loadingIndicator.js";
 import { filterReleasedItems } from "../../../core/util/releaseInfoUtils.js";
 import {
+  observeDeferredImages,
+  optimizePosterUrl,
+  prioritizeCardPosterWindow
+} from "../../../core/media/imageLoadQueue.js";
+import {
   buildSearchScheduleIndices,
   buildSearchTargets,
   catalogSkipStep,
@@ -603,11 +608,14 @@ export const SearchScreen = {
       return;
     }
     const selectionSnapshot = getInputSelectionSnapshot(input);
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
 
     while (header.nextSibling) {
       header.nextSibling.remove();
     }
     content.insertAdjacentHTML("beforeend", this.renderRows());
+    this.observePosterImages();
     ScreenUtils.indexFocusables(this.container);
     this.buildNavigationModel();
     this.bindActionEvents();
@@ -891,7 +899,7 @@ export const SearchScreen = {
                      data-catalog-type="${escapeHtml(row.type || item.catalogType || "")}"
                      data-row-key="${escapeHtml(rowKey)}">
               <div class="search-result-poster-wrap">
-                ${item.poster ? `<img class="search-result-poster" src="${item.poster}" alt="${item.name || "content"}" loading="lazy" decoding="async" />` : `<div class="search-result-poster placeholder"></div>`}
+                ${item.poster ? `<img class="search-result-poster" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" alt="${item.name || "content"}" decoding="async" />` : `<div class="search-result-poster placeholder"></div>`}
                 ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}
               </div>
               <div class="search-result-name" dir="auto">${item.name || "Untitled"}</div>
@@ -930,6 +938,8 @@ export const SearchScreen = {
 
   render() {
     this.cancelScheduledRender();
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     const queryText = this.query || "";
     this.container.innerHTML = `
       <div class="home-shell search-screen-shell${this.searchRouteEnterPending ? " search-route-enter" : ""}">
@@ -980,6 +990,7 @@ export const SearchScreen = {
     `;
     this.searchRouteEnterPending = false;
 
+    this.observePosterImages();
     ScreenUtils.indexFocusables(this.container);
     this.buildNavigationModel();
     bindRootSidebarEvents(this.container, {
@@ -1001,6 +1012,14 @@ export const SearchScreen = {
       this.restoreContentFocus(shouldFocusResults);
     }
     this.pendingAutoFocusResults = false;
+  },
+
+  observePosterImages() {
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = observeDeferredImages(this.container, {
+      selector: ".search-result-poster[data-src]",
+      root: this.container.querySelector(".search-content")
+    });
   },
 
   isPosterHoldTarget(node) {
@@ -1313,6 +1332,12 @@ export const SearchScreen = {
       if (node !== target) node.classList.remove("focused");
     });
     target.classList.add("focused");
+    if (target.classList.contains("search-result-card")) {
+      prioritizeCardPosterWindow(target, {
+        cardSelector: ".search-result-card",
+        imageSelector: ".search-result-poster[data-src]"
+      });
+    }
     focusWithoutAutoScroll(target);
     const zone = String(target.dataset.navZone || "");
     const currentZone = String(current?.dataset?.navZone || "");
@@ -2127,6 +2152,8 @@ export const SearchScreen = {
     resetDpadRepeat(this);
     this.cancelScheduledRender();
     this.cancelPendingPosterHold();
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     this.posterOptionsMenu = null;
     this.posterOptionsController?.destroy?.({ restoreFocus: false });
     this.posterOptionsController = null;

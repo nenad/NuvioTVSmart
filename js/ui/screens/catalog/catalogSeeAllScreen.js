@@ -19,6 +19,11 @@ import {
   renderTitleWatchedBadge
 } from "../../components/watchedTitleBadge.js";
 import { renderLoadingIndicator } from "../../components/loadingIndicator.js";
+import {
+  observeDeferredImages,
+  optimizePosterUrl,
+  prioritizeCardPosterWindow
+} from "../../../core/media/imageLoadQueue.js";
 
 const POSTER_HOLD_DELAY_MS = 650;
 
@@ -440,6 +445,10 @@ export const CatalogSeeAllScreen = {
       }
     });
     target.classList.add("focused");
+    prioritizeCardPosterWindow(target, {
+      cardSelector: ".seeall-card",
+      imageSelector: ".seeall-card-poster-image[data-src]"
+    });
     focusWithoutAutoScroll(target);
     this.lastFocusedKey = target.dataset.focusKey || this.lastFocusedKey;
     this.rememberRowFocus(target);
@@ -679,6 +688,8 @@ export const CatalogSeeAllScreen = {
   },
 
   render() {
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     const descriptor = this.params || {};
     const title = descriptor.catalogName || "Catalog";
     const cards = this.items.length
@@ -701,7 +712,7 @@ export const CatalogSeeAllScreen = {
             <div class="seeall-card-poster-wrap">
               ${
                 item.poster
-                  ? `<img class="seeall-card-poster-image" src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.name || "content")}" loading="lazy" decoding="async" />`
+                  ? `<img class="seeall-card-poster-image" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" alt="${escapeHtml(item.name || "content")}" decoding="async" />`
                   : `<div class="seeall-card-poster placeholder"></div>`
               }
               ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}
@@ -746,6 +757,10 @@ export const CatalogSeeAllScreen = {
       </div>
     `;
 
+    this.posterObserverCleanup = observeDeferredImages(this.container, {
+      selector: ".seeall-card-poster-image[data-src]",
+      root: this.container.querySelector(".seeall-shell")
+    });
     ScreenUtils.indexFocusables(this.container);
     this.buildNavigationModel();
     this.bindCardEvents();
@@ -847,6 +862,8 @@ export const CatalogSeeAllScreen = {
     this.cancelPendingPosterHold();
     this.posterOptionsController?.destroy?.({ restoreFocus: false });
     this.posterOptionsController = null;
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     this.posterOptionsFocusKey = "";
     ScreenUtils.hide(this.container);
   }

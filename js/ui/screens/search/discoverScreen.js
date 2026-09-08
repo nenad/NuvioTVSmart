@@ -35,6 +35,11 @@ import {
 import { renderLoadingIndicator } from "../../components/loadingIndicator.js";
 import { allowDpadRepeat, resetDpadRepeat } from "../../navigation/dpadRepeatThrottle.js";
 import { catalogSkipStep, catalogSupportsExtra } from "../../../core/addons/homeCatalogs.js";
+import {
+  observeDeferredImages,
+  optimizePosterUrl,
+  prioritizeCardPosterWindow
+} from "../../../core/media/imageLoadQueue.js";
 
 const POSTER_HOLD_DELAY_MS = 650;
 const PICKER_MENU_EXIT_MS = 160;
@@ -520,7 +525,7 @@ export const DiscoverScreen = {
                  <div class="seeall-card-poster-wrap">
                    ${
                      item.poster
-                       ? `<img class="seeall-card-poster-image" src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.name || "content")}" loading="lazy" decoding="async" />`
+                       ? `<img class="seeall-card-poster-image" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" alt="${escapeHtml(item.name || "content")}" decoding="async" />`
                        : `<div class="seeall-card-poster placeholder"></div>`
                    }
                    ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}
@@ -841,6 +846,8 @@ export const DiscoverScreen = {
     if (subtitleNode instanceof HTMLElement) {
       subtitleNode.textContent = this.getDiscoverContextLabel(selectedCatalog);
     }
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     const gridNode = this.container.querySelector("#discoverGridMount");
     if (gridNode instanceof HTMLElement) {
       gridNode.innerHTML = this.renderDiscoverCards(selectedCatalog);
@@ -850,6 +857,7 @@ export const DiscoverScreen = {
       loadingNode.innerHTML = this.renderDiscoverLoadingMarkup();
     }
 
+    this.observePosterImages();
     ScreenUtils.indexFocusables(this.container);
     this.buildNavigationModel();
     this.bindCardEvents();
@@ -1105,6 +1113,12 @@ export const DiscoverScreen = {
       if (node !== target) node.classList.remove("focused");
     });
     target.classList.add("focused");
+    if (target.classList.contains("discover-card")) {
+      prioritizeCardPosterWindow(target, {
+        cardSelector: ".discover-card",
+        imageSelector: ".seeall-card-poster-image[data-src]"
+      });
+    }
     focusWithoutAutoScroll(target);
     this.syncOpenPickerScroll();
     return true;
@@ -1755,6 +1769,8 @@ export const DiscoverScreen = {
 
   render() {
     this.cancelScheduledRender();
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     this.layoutPrefs = LayoutPreferences.get();
     const showRootSidebar = this.isSidebarRootRoute();
     const openPicker = this.openPicker || null;
@@ -1809,6 +1825,7 @@ export const DiscoverScreen = {
       </div>
     `;
 
+    this.observePosterImages();
     ScreenUtils.indexFocusables(this.container);
     this.buildNavigationModel();
     if (showRootSidebar) {
@@ -1842,6 +1859,14 @@ export const DiscoverScreen = {
       this.restoreContentFocus({ scrollMode });
     }
     this.syncOpenPickerScroll();
+  },
+
+  observePosterImages() {
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = observeDeferredImages(this.container, {
+      selector: ".seeall-card-poster-image[data-src]",
+      root: this.container.querySelector(".discover-main")
+    });
   },
 
   bindCardEvents() {
@@ -2177,6 +2202,8 @@ export const DiscoverScreen = {
     this.posterOptionsMenu = null;
     this.posterOptionsController?.destroy?.({ restoreFocus: false });
     this.posterOptionsController = null;
+    this.posterObserverCleanup?.();
+    this.posterObserverCleanup = null;
     this.pendingPosterOptionsFocusKey = "";
     this.suppressHoldMenuEnterUntilKeyUp = false;
     ScreenUtils.hide(this.container);

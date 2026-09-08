@@ -49,6 +49,11 @@ import { TMDB_API_KEY, YOUTUBE_PROXY_URL } from "../../../config.js";
 import { I18n } from "../../../i18n/index.js";
 import { localizedGenreLabel } from "../../../i18n/genreLabels.js";
 import {
+  cancelImageLoadsWithin,
+  enqueueImageLoads,
+  optimizePosterUrl
+} from "../../../core/media/imageLoadQueue.js";
+import {
   buildWatchedTitleIdSet,
   isTitleItemWatched,
   renderTitleWatchedBadge
@@ -3085,7 +3090,7 @@ export function createPosterCardMarkup(
       <div class="home-poster-frame">
         ${
           !isLoading && posterSrc
-            ? `<img class="content-poster" ${buildLazyImageAttributes(posterSrc, { defer: deferImages })} alt="${escapeAttribute(normalized.name || "content")}" />`
+            ? `<img class="content-poster" ${buildLazyImageAttributes(useLandscapePoster ? posterSrc : optimizePosterUrl(posterSrc), { defer: deferImages })} alt="${escapeAttribute(normalized.name || "content")}" />`
             : '<div class="content-poster placeholder"></div>'
         }
         ${
@@ -10394,6 +10399,7 @@ export const HomeScreen = {
     const markupUnchanged = shellMounted && this.renderedMarkup === nextMarkup;
 
     if (!markupUnchanged) {
+      cancelImageLoadsWithin(this.container);
       this.container.innerHTML = nextMarkup;
       this.renderedMarkup = nextMarkup;
     }
@@ -10727,6 +10733,26 @@ export const HomeScreen = {
     const focusedRowMargin = focusedRow
       ? Math.max(96, Math.round(Number(anchorNode?.offsetWidth || 0) * 0.65))
       : horizontalMargin;
+    const focusedCard = anchorNode?.closest?.(".home-content-card") || null;
+    if (focusedCard && anchorRow) {
+      const rowCards = Array.from(anchorRow.querySelectorAll(".home-content-card"));
+      const focusedIndex = rowCards.indexOf(focusedCard);
+      const posterWindow = (row) =>
+        Array.from(row?.querySelectorAll?.(".home-content-card") || [])
+          .slice(Math.max(0, focusedIndex - 2), focusedIndex + 3)
+          .map((card) => card.querySelector(".content-poster[data-src]"))
+          .filter(Boolean);
+      const anchorEntryIndex = imageRows.findIndex((entry) => entry.row === anchorRow);
+      const adjacentRows =
+        anchorEntryIndex < 0
+          ? []
+          : [imageRows[anchorEntryIndex - 1]?.row, imageRows[anchorEntryIndex + 1]?.row].filter(
+              Boolean
+            );
+      enqueueImageLoads([posterWindow(anchorRow), ...adjacentRows.map(posterWindow)].flat(), {
+        priority: true
+      });
+    }
     const pendingLoads = [];
     imageRows.forEach((entry) => {
       const { row } = entry;
@@ -10788,11 +10814,7 @@ export const HomeScreen = {
       });
     });
     // Complete geometry reads before changing image layout/loading state.
-    pendingLoads.forEach(({ image, src }) => {
-      image.loading = "eager";
-      image.removeAttribute("data-src");
-      image.src = src;
-    });
+    enqueueImageLoads(pendingLoads);
   },
 
   teardownGridStickyHeader() {
@@ -12428,6 +12450,7 @@ export const HomeScreen = {
   },
 
   cleanup() {
+    cancelImageLoadsWithin(this.container);
     if (this.unsubscribeStartupSyncPullCompleted) {
       this.unsubscribeStartupSyncPullCompleted();
       this.unsubscribeStartupSyncPullCompleted = null;
