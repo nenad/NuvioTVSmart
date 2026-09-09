@@ -525,7 +525,7 @@ export const DiscoverScreen = {
                  <div class="seeall-card-poster-wrap">
                    ${
                      item.poster
-                       ? `<img class="seeall-card-poster-image" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" alt="${escapeHtml(item.name || "content")}" decoding="async" />`
+                       ? `<img class="seeall-card-poster-image" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" data-fallback-src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.name || "content")}" decoding="async" />`
                        : `<div class="seeall-card-poster placeholder"></div>`
                    }
                    ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}

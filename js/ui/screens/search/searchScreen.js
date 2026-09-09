@@ -899,7 +899,7 @@ export const SearchScreen = {
                      data-catalog-type="${escapeHtml(row.type || item.catalogType || "")}"
                      data-row-key="${escapeHtml(rowKey)}">
               <div class="search-result-poster-wrap">
-                ${item.poster ? `<img class="search-result-poster" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" alt="${item.name || "content"}" decoding="async" />` : `<div class="search-result-poster placeholder"></div>`}
+                ${item.poster ? `<img class="search-result-poster" data-src="${escapeHtml(optimizePosterUrl(item.poster))}" data-fallback-src="${escapeHtml(item.poster)}" alt="${item.name || "content"}" decoding="async" />` : `<div class="search-result-poster placeholder"></div>`}
                 ${isTitleItemWatched(item, this.watchedTitleIds) ? renderTitleWatchedBadge() : ""}
               </div>
               <div class="search-result-name" dir="auto">${item.name || "Untitled"}</div>

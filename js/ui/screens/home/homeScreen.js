@@ -2904,14 +2904,20 @@ function shouldDeferHomeRowImages(rowIndex = 0, rowKey = "", focusedRowKey = "")
   return safeRowIndex >= eagerRows;
 }
 
-function buildLazyImageAttributes(src = "", { defer = false, highPriority = false } = {}) {
-  const safeSrc = escapeAttribute(src);
+function buildLazyImageAttributes(
+  src = "",
+  { defer = false, highPriority = false, optimizePoster = false } = {}
+) {
+  const requestSrc = optimizePoster ? optimizePosterUrl(src) : src;
+  const safeSrc = escapeAttribute(requestSrc);
+  const fallback = requestSrc !== src ? ` data-fallback-src="${escapeAttribute(src)}"` : "";
   const priority = highPriority ? ' fetchpriority="high"' : "";
   const loadingMode = getTvRuntimePerformanceProfile().isPerformanceConstrained ? "eager" : "lazy";
   if (defer) {
-    return `data-src="${safeSrc}" loading="${loadingMode}" decoding="async"${priority}`;
+    return `data-src="${safeSrc}"${fallback} loading="${loadingMode}" decoding="async"${priority}`;
   }
-  return `src="${safeSrc}" loading="${loadingMode}" decoding="async"${priority}`;
+  const onError = fallback ? ' onerror="this.onerror=null;this.src=this.dataset.fallbackSrc"' : "";
+  return `src="${safeSrc}"${fallback} loading="${loadingMode}" decoding="async"${priority}${onError}`;
 }
 
 export function createPosterCardMarkup(
@@ -3090,7 +3096,7 @@ export function createPosterCardMarkup(
       <div class="home-poster-frame">
         ${
           !isLoading && posterSrc
-            ? `<img class="content-poster" ${buildLazyImageAttributes(useLandscapePoster ? posterSrc : optimizePosterUrl(posterSrc), { defer: deferImages })} alt="${escapeAttribute(normalized.name || "content")}" />`
+            ? `<img class="content-poster" ${buildLazyImageAttributes(posterSrc, { defer: deferImages, optimizePoster: !useLandscapePoster })} alt="${escapeAttribute(normalized.name || "content")}" />`
             : '<div class="content-poster placeholder"></div>'
         }
         ${

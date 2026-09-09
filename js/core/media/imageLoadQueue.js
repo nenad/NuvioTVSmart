@@ -9,6 +9,27 @@ let activeLoads = 0;
 
 export function optimizePosterUrl(value) {
   const source = String(value || "");
+  try {
+    const parsed = new URL(source);
+    const marker = "/poster-cache/poster/";
+    const markerIndex = parsed.pathname.indexOf(marker);
+    if (markerIndex >= 0) {
+      let upstreamUrl = `${parsed.pathname.slice(markerIndex + marker.length)}${parsed.search}`;
+      if (/^https?%3a%2f%2f/i.test(upstreamUrl)) {
+        upstreamUrl = decodeURIComponent(upstreamUrl);
+      }
+      if (/^https?:\/\//i.test(upstreamUrl)) {
+        const resized = new URL("/api/image/banner-to-background", parsed.origin);
+        resized.searchParams.set("url", upstreamUrl);
+        resized.searchParams.set("width", "300");
+        resized.searchParams.set("height", "450");
+        resized.searchParams.set("position", "center");
+        return resized.toString();
+      }
+    }
+  } catch (_) {
+    // Preserve malformed or relative input for the existing image fallback path.
+  }
   const literalOptimized = source.replace(
     /(image\.tmdb\.org\/t\/p\/)(?:original|w\d+(?:_and_h\d+_bestv2)?)(\/)/i,
     "$1w342$2"
@@ -21,7 +42,7 @@ export function optimizePosterUrl(value) {
 
 function drainQueue() {
   while (activeLoads < MAX_CONCURRENT_IMAGE_LOADS && queue.length) {
-    const { image, src } = queue.shift();
+    const { image, src, fallbackSrc } = queue.shift();
     if (!image?.isConnected) {
       queuedImages.delete(image);
       queuedEntries.delete(image);
@@ -32,11 +53,12 @@ function drainQueue() {
     queuedEntries.delete(image);
     let timeoutId = 0;
     let finished = false;
+    let usingFallback = false;
     const finish = () => {
       if (finished) return;
       finished = true;
       image.removeEventListener("load", finish);
-      image.removeEventListener("error", finish);
+      image.removeEventListener("error", handleError);
       if (timeoutId) clearTimeout(timeoutId);
       queuedImages.delete(image);
       activeImages.delete(image);
@@ -44,9 +66,17 @@ function drainQueue() {
       activeLoads = Math.max(0, activeLoads - 1);
       drainQueue();
     };
+    const handleError = () => {
+      if (fallbackSrc && !usingFallback) {
+        usingFallback = true;
+        image.src = fallbackSrc;
+        return;
+      }
+      finish();
+    };
     activeImages.set(image, { finish, src });
     image.addEventListener("load", finish, { once: true });
-    image.addEventListener("error", finish, { once: true });
+    image.addEventListener("error", handleError);
     timeoutId = setTimeout(() => {
       const retryCount = retryCounts.get(image) || 0;
       image.dataset.src = src;
@@ -79,7 +109,14 @@ export function enqueueImageLoad(image, src = image?.dataset?.src, { priority = 
     return false;
   }
   queuedImages.add(image);
-  const entry = { image, src: source };
+  const entry = {
+    image,
+    src: source,
+    fallbackSrc:
+      String(image.dataset?.fallbackSrc || "").trim() === source
+        ? ""
+        : String(image.dataset?.fallbackSrc || "").trim()
+  };
   queuedEntries.set(image, entry);
   if (priority) queue.unshift(entry);
   else queue.push(entry);
