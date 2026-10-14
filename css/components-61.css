@@ -49,6 +49,13 @@
   display: flex;
 }
 
+/* The controls overlay ignores the pointer and each control opts back in;
+   the progress bar never did, so seekProgressFromPointer could not be
+   reached by a Magic Remote, a mouse or a finger. */
+#playerUiRoot .player-progress-shell {
+  pointer-events: auto;
+}
+
 /* Touch screens, in either orientation. The player's controls are sized for
    a remote that moves a highlight: 48 TV pixels, a 24 CSS px target on a
    phone, and a progress bar 6px tall. Give fingers 44px targets. */
