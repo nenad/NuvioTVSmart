@@ -29,6 +29,7 @@ import { shouldShowUpdate } from "./core/update/updateBannerPolicy.js";
 import { showAppUpdatePrompt } from "./ui/components/appUpdatePrompt.js";
 import { mountBrowserBackButton } from "./ui/components/browserBackButton.js";
 import { installCompactLayoutTransitionGuard } from "./ui/theme/compactLayout.js";
+import { installTouchHold } from "./ui/navigation/touchHold.js";
 import { resolveExperienceRoute } from "./core/profile/experienceModeRouting.js";
 import { PluginRuntime } from "./core/player/pluginRuntime.js";
 
@@ -583,6 +584,7 @@ async function bootstrapApp() {
   FocusEngine.init();
   mountBrowserBackButton();
   installCompactLayoutTransitionGuard();
+  installTouchHold();
   setupProviderCredentialForegroundLifecycle();
   setupTizenPlaybackLifecycle();
   setupPluginRuntimeLifecycle();
