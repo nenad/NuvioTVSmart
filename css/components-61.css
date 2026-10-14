@@ -176,4 +176,66 @@
     transform: scaleX(-1);
     fill: currentColor;
   }
+
+  /* --- home (modern layout): the hero scrolls away under the rows ------- */
+
+  .home-screen-shell.home-layout-modern {
+    --compact-edge: 32px;
+    --compact-hero-height: 52vh;
+  }
+
+  /* One scroller for the whole page. The first row starts below the hero,
+     and scrolling slides the rows up over it on a solid backdrop. */
+  .home-screen-shell.home-layout-modern .home-modern-rows-viewport {
+    top: 0;
+    height: calc(100% - var(--compact-tabbar-total));
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-rows-scroll {
+    padding-top: var(--compact-hero-height);
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-catalogs {
+    background: linear-gradient(to bottom, rgba(13, 13, 13, 0) 0, var(--bg-color) 160px);
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-hero-media {
+    left: 0;
+    width: 100%;
+    height: calc(var(--compact-hero-height) + 120px);
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-hero-copy {
+    top: auto;
+    right: var(--compact-edge);
+    bottom: calc(100vh - var(--compact-hero-height) + 24px);
+    left: var(--compact-edge);
+    width: auto;
+    max-width: none;
+    /* A fixed box: applyModernHeroDescriptionBounds fits the description
+       into whatever height the logo and meta leave. */
+    height: 420px;
+  }
+
+  /* The image now sits behind the copy, so darken its lower part. */
+  .home-screen-shell.home-layout-modern .home-modern-hero-media::after {
+    background: linear-gradient(
+      to bottom,
+      rgba(13, 13, 13, 0) 0,
+      rgba(13, 13, 13, 0) 30%,
+      rgba(13, 13, 13, 0.7) 62%,
+      var(--bg-color) 88%
+    );
+  }
+
+  .home-screen-shell.home-layout-modern .home-row-head {
+    padding-left: var(--compact-edge);
+  }
+
+  .home-screen-shell.home-layout-modern .home-track {
+    margin-left: 0;
+    padding-left: var(--compact-edge);
+    padding-right: var(--compact-edge);
+    scroll-padding-left: var(--compact-edge);
+  }
 }
