@@ -320,7 +320,7 @@ export function createSettingsScreenMethods14() {
       event?.preventDefault?.();
       await this.activateFocused();
     },
-    consumeBackRequest() {
+    consumeBackRequest({ source = "" } = {}) {
       if (this.textDialog) {
         this.closeTextDialog();
         void this.render({ refreshModel: false });
@@ -330,6 +330,12 @@ export function createSettingsScreenMethods14() {
         this.closeOptionDialog();
         void this.render({ refreshModel: false });
         return true;
+      }
+      // The browser has already moved back in its history. Opening the
+      // sidebar would leave the page there, and exitApp cannot close a tab,
+      // so let the router follow the history entry instead.
+      if (source === "history" && Platform.isBrowser()) {
+        return false;
       }
       if (this.focusZone === "sidebar") {
         Platform.exitApp();
