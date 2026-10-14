@@ -349,4 +349,10 @@ html.layout-switching *::after {
     max-height: 120px;
     margin-bottom: 12px;
   }
+
+  /* --- cast: clear the Back button above the portrait ------------------ */
+
+  .cast-detail-shell .cast-detail-hero {
+    padding-top: 112px;
+  }
 }
