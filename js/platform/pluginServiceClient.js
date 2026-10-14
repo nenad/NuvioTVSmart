@@ -1,4 +1,5 @@
 import { Platform } from "./index.js";
+import { BrowserPluginService } from "./browser/browserPluginService.js";
 import { TizenCapabilities } from "./tizen/tizenCapabilities.js";
 import { TizenPluginService } from "./tizen/tizenPluginService.js";
 import { WebOsPluginService } from "./webos/webosPluginService.js";
@@ -33,6 +34,7 @@ export const PLUGIN_PROTOCOL_VERSION = 1;
 function serviceForPlatform() {
   if (Platform.isTizen()) return TizenPluginService;
   if (Platform.isWebOS()) return WebOsPluginService;
+  if (Platform.isBrowser() && BrowserPluginService.isAvailable()) return BrowserPluginService;
   return null;
 }
 
@@ -413,7 +415,7 @@ export const PluginServiceClient = {
       if (!areTizenPluginsSupported()) {
         throw new Error(TIZEN_PLUGIN_UNSUPPORTED_DETAIL);
       }
-      if (Platform.isBrowser()) {
+      if (Platform.isBrowser() && !BrowserPluginService.isAvailable()) {
         if (globalThis.__NUVIO_ALLOW_BROWSER_PLUGIN_RUNTIME__ !== true)
           throw new Error("Plugin execution is TV-only");
         const result = await directBrowserFetch(request);
