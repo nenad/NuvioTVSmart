@@ -65,7 +65,17 @@ export const FocusEngine = {
       document.addEventListener("click", this.boundHandlePointerClick, true);
       document.documentElement?.classList?.add("webos-pointer-remote");
       document.body?.classList?.add("webos-pointer-remote");
+    } else if (Platform.isBrowser()) {
+      // Mouse and touch users expect a click or tap to act on what it lands
+      // on, so browsers get pointer activation. Focus does not follow hover
+      // here: that is Magic Remote behaviour, and with a mouse or a tap it
+      // reflows rows under the pointer before the click arrives.
+      document.addEventListener("click", this.boundHandlePointerClick, true);
     }
+  },
+
+  isPointerClickEnabled() {
+    return Platform.isWebOS() || Platform.isBrowser();
   },
 
   handleBack(event, normalizedEvent = buildNormalizedEvent(event)) {
@@ -323,7 +333,7 @@ export const FocusEngine = {
   },
 
   handlePointerClick(event) {
-    if (!Platform.isWebOS()) {
+    if (!this.isPointerClickEnabled()) {
       return;
     }
     const target = this.getPointerFocusable(event);
