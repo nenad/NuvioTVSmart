@@ -86,13 +86,6 @@ export function getPluginCapabilitySnapshot() {
   const platform = Platform.getName();
   const hasWorker = typeof globalThis.Worker === "function";
   const hasWebAssembly = typeof globalThis.WebAssembly === "object";
-  if (platform === "browser" && globalThis.__NUVIO_ALLOW_BROWSER_PLUGIN_RUNTIME__ !== true) {
-    return snapshotFields(platform, PLUGIN_QUOTAS.limited, {
-      appSupported: false,
-      normalAddonsSupported: false,
-      reason: "Plugin execution is limited to packaged TV runtimes"
-    });
-  }
 
   if (!hasWorker || !hasWebAssembly) {
     return snapshotFields(platform, PLUGIN_QUOTAS.limited, {
@@ -100,6 +93,34 @@ export function getPluginCapabilitySnapshot() {
       normalAddonsSupported: platform !== "browser",
       reason: "Worker and WebAssembly are required"
     });
+  }
+
+  if (platform === "browser") {
+    // Browsers run plugins when a remote network service URL is configured
+    // (for example a self-hosted plugin proxy) or the developer runtime flag is set.
+    // The modern quota tier matches webOS 6+.
+    const remoteServiceUrl = String(globalThis.__NUVIO_BROWSER_PLUGIN_SERVICE_URL__ || "").trim();
+    const devRuntime = globalThis.__NUVIO_ALLOW_BROWSER_PLUGIN_RUNTIME__ === true;
+    if (!remoteServiceUrl && !devRuntime) {
+      return snapshotFields(platform, PLUGIN_QUOTAS.limited, {
+        appSupported: false,
+        normalAddonsSupported: false,
+        reason: "Plugin execution is limited to packaged TV runtimes"
+      });
+    }
+    return {
+      ...snapshotFields(platform, PLUGIN_QUOTAS.modern, {
+        appSupported: true,
+        normalAddonsSupported: true,
+        candidate: true,
+        reason: remoteServiceUrl
+          ? "Waiting for the remote plugin service and QuickJS worker handshake"
+          : "Waiting for the plugin runtime handshake"
+      }),
+      precheckPassed: true,
+      pluginServicePackaged: true,
+      remotePluginService: Boolean(remoteServiceUrl)
+    };
   }
 
   if (platform === "tizen") {
