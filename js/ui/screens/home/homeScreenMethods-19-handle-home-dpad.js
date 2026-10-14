@@ -1,7 +1,7 @@
 import * as internals from "./homeScreenContext.js";
 
 export function createHomeScreenMethods19() {
-  const { getLegacySidebarSelectedNode, getModernSidebarSelectedNode, getDirectionFromKeyCode } = internals;
+  const { getLegacySidebarSelectedNode, getModernSidebarSelectedNode, getDirectionFromKeyCode, Platform } = internals;
 
   return {
     handleHomeDpad(event) {
@@ -190,6 +190,12 @@ export function createHomeScreenMethods19() {
       }
       if (!this.boundHomeMouseOverHandler) {
         this.boundHomeMouseOverHandler = (event) => {
+          // Focus follows the Magic Remote pointer on webOS, as on Android TV.
+          // A mouse or a tap in a browser must not: focusing expands the card
+          // and reflows the row, so the click would land on another title.
+          if (!Platform.isWebOS()) {
+            return;
+          }
           const target = event?.target?.closest?.(".home-main .home-content-card.focusable");
           if (!target || !this.container?.contains(target) || target.classList.contains("focused")) {
             return;
