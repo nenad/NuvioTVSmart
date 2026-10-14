@@ -187,6 +187,7 @@ html.layout-switching *::after {
     min-width: 0;
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 
   .home-shell .home-profile-name {
@@ -406,5 +407,29 @@ html.layout-switching *::after {
     min-height: 96px;
     padding: 16px 24px;
     line-height: 1.2;
+  }
+
+  /* --- dialogs: the TV caps them at 43vw tall, a fifth of a portrait
+     canvas, and their rows then shrink into one another ----------------- */
+
+  .settings-dialog {
+    max-height: calc(
+      100vh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
+    overflow-y: auto;
+  }
+
+  .settings-dialog > * {
+    flex-shrink: 0;
+  }
+
+  /* --- onboarding: choices stacked instead of side by side ------------ */
+
+  .experience-mode-options,
+  .experience-mode-options.is-layout {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    padding: 0 32px;
+    box-sizing: border-box;
   }
 }
