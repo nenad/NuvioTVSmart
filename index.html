@@ -44,6 +44,54 @@
         );
       })();
     </script>
+    <script>
+      (function configureTouchCanvas() {
+        var root = typeof globalThis !== "undefined" ? globalThis : window;
+
+        // TVs size their own canvas: Tizen above, webOS natively.
+        if (root.__NUVIO_PLATFORM__ === "tizen" || root.webOS || root.PalmSystem) {
+          return;
+        }
+        if (!root.matchMedia || !root.matchMedia("(pointer: coarse)").matches) {
+          return;
+        }
+
+        // The stylesheet is drawn in TV pixels, which are Android TV dp
+        // doubled for a 1920px canvas. On phones and tablets one dp is about
+        // one CSS pixel, so a layout viewport twice the device width gives
+        // every control, label and poster its Android size. A phone held
+        // sideways then gets roughly the TV canvas itself.
+        var landscape = root.matchMedia("(orientation: landscape)");
+        var viewport = document.querySelector("meta[name='viewport']");
+        if (!viewport) {
+          viewport = document.createElement("meta");
+          viewport.name = "viewport";
+          document.head.appendChild(viewport);
+        }
+
+        function apply() {
+          var screenRef = root.screen || {};
+          var a = Number(screenRef.width || 0);
+          var b = Number(screenRef.height || 0);
+          if (!a || !b) {
+            return;
+          }
+          // iOS reports portrait dimensions in either orientation.
+          var deviceWidth = landscape.matches ? Math.max(a, b) : Math.min(a, b);
+          viewport.setAttribute(
+            "content",
+            "width=" + Math.round(deviceWidth * 2) + ", viewport-fit=cover"
+          );
+        }
+
+        apply();
+        if (typeof landscape.addEventListener === "function") {
+          landscape.addEventListener("change", apply);
+        } else if (typeof landscape.addListener === "function") {
+          landscape.addListener(apply);
+        }
+      })();
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Nuvio TV</title>
 
