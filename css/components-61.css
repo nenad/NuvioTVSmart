@@ -283,4 +283,26 @@
     padding-right: var(--compact-edge);
     scroll-padding-left: var(--compact-edge);
   }
+
+  /* --- stream picker: title above, sources below ----------------------- */
+
+  .stream-route-shell .stream-route-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 24px;
+    padding: calc(136px + env(safe-area-inset-top, 0px)) 32px 32px;
+  }
+
+  .stream-route-shell .stream-route-left {
+    padding: 0;
+  }
+
+  .stream-route-shell .stream-route-left-inner {
+    width: 100%;
+  }
+
+  .stream-route-shell .stream-route-logo {
+    max-height: 120px;
+    margin-bottom: 12px;
+  }
 }
