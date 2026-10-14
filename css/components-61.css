@@ -4,6 +4,51 @@
   display: none;
 }
 
+/* A browser's on-screen Back (js/ui/components/browserBackButton.js), on the
+   screens that have somewhere to go back to. Tab destinations, onboarding and
+   the player, which has controls of its own, leave it hidden. */
+.browser-back-button {
+  position: fixed;
+  top: calc(24px + env(safe-area-inset-top, 0px));
+  left: calc(24px + env(safe-area-inset-left, 0px));
+  z-index: 30;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.64);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.browser-back-button svg {
+  width: 52px;
+  height: 52px;
+  fill: currentColor;
+}
+
+[data-route="account"] .browser-back-button,
+[data-route="detail"] .browser-back-button,
+[data-route="stream"] .browser-back-button,
+[data-route="castDetail"] .browser-back-button,
+[data-route="catalogSeeAll"] .browser-back-button,
+[data-route="tmdbEntityBrowse"] .browser-back-button,
+[data-route="folderDetail"] .browser-back-button,
+[data-route="trakt"] .browser-back-button,
+[data-route="supportersContributors"] .browser-back-button,
+[data-route="licensesAttributions"] .browser-back-button,
+[data-route="plugin"] .browser-back-button,
+[data-route="plugins"] .browser-back-button,
+[data-route="catalogOrder"] .browser-back-button,
+[data-route="debugConsole"] .browser-back-button {
+  display: flex;
+}
+
 /* Compact layouts.
 
    Canvases narrower than the TV layout's smallest breakpoint: phones in

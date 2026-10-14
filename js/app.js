@@ -27,6 +27,7 @@ import { I18n } from "./i18n/index.js";
 import { getLatestAppUpdateWithRetry } from "./core/update/appUpdateService.js";
 import { shouldShowUpdate } from "./core/update/updateBannerPolicy.js";
 import { showAppUpdatePrompt } from "./ui/components/appUpdatePrompt.js";
+import { mountBrowserBackButton } from "./ui/components/browserBackButton.js";
 import { resolveExperienceRoute } from "./core/profile/experienceModeRouting.js";
 import { PluginRuntime } from "./core/player/pluginRuntime.js";
 
@@ -579,6 +580,7 @@ async function bootstrapApp() {
   PlayerController.init();
 
   FocusEngine.init();
+  mountBrowserBackButton();
   setupProviderCredentialForegroundLifecycle();
   setupTizenPlaybackLifecycle();
   setupPluginRuntimeLifecycle();
