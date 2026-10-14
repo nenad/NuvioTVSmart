@@ -462,8 +462,11 @@ html.layout-switching *::after {
     display: none;
   }
 
+  /* Four fixed-size avatars are wider than the panel; three fit. */
   .profile-editor-avatar-grid {
     max-height: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
   }
 
   /* --- text sizes: secondary text a phone can read ----------------------
