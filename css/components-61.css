@@ -121,6 +121,39 @@ html.layout-switching *::after {
    value here is twice its Android dp, like everywhere else. TVs never match. */
 
 @media (max-width: 1099px) {
+  /* A browser tab's 100vh is the viewport with the toolbar collapsed, so
+     Safari's toolbar covers the bottom of every full-height screen. Size them
+     to what is visible instead. Home-screen apps have no toolbar; both match. */
+  :root {
+    --compact-vh: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    :root {
+      --compact-vh: 100dvh;
+    }
+  }
+
+  #app,
+  .screen,
+  .qr-layout,
+  .profile-screen,
+  .home-shell,
+  .home-main,
+  .search-screen-shell,
+  .search-content,
+  .discover-shell,
+  .trakt-route-shell,
+  .plugins-route-shell,
+  .supporters-route-shell,
+  .debug-console-shell {
+    height: var(--compact-vh);
+  }
+
+  .account-shell {
+    min-height: var(--compact-vh);
+  }
+
   .home-shell {
     /* 64dp tab bar, plus the home indicator area on notched phones. */
     --compact-tabbar-height: 128px;
@@ -240,7 +273,7 @@ html.layout-switching *::after {
 
   .settings-shell .settings-workspace {
     width: 100vw;
-    height: calc(100vh - var(--compact-tabbar-total));
+    height: calc(var(--compact-vh) - var(--compact-tabbar-total));
     margin: 0;
     padding: 32px 32px 24px;
     border: none;
@@ -414,7 +447,7 @@ html.layout-switching *::after {
 
   .settings-dialog {
     max-height: calc(
-      100vh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+      var(--compact-vh) - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
     );
     overflow-y: auto;
   }
@@ -438,7 +471,7 @@ html.layout-switching *::after {
   .profile-editor-panel {
     width: calc(100vw - 32px);
     max-height: calc(
-      100vh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+      var(--compact-vh) - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
     );
     padding: 32px;
     overflow-y: auto;
