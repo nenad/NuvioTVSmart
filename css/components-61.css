@@ -85,6 +85,14 @@
   }
 }
 
+/* Set for a frame or two while a rotation swaps compact and TV layouts
+   (installCompactLayoutTransitionGuard in js/ui/theme/compactLayout.js). */
+html.layout-switching *,
+html.layout-switching *::before,
+html.layout-switching *::after {
+  transition: none !important;
+}
+
 /* Compact layouts.
 
    Canvases narrower than the TV layout's smallest breakpoint: phones in
