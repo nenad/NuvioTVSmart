@@ -49,6 +49,30 @@
   display: flex;
 }
 
+/* Touch screens, in either orientation. The player's controls are sized for
+   a remote that moves a highlight: 48 TV pixels, a 24 CSS px target on a
+   phone, and a progress bar 6px tall. Give fingers 44px targets. */
+@media (pointer: coarse) {
+  #playerUiRoot {
+    --player-control-size: 88px;
+    --player-control-icon: 44px;
+  }
+
+  /* A taller, invisible hit area; taps on it reach the bar's own handler. */
+  #playerUiRoot .player-progress-shell {
+    position: relative;
+  }
+
+  #playerUiRoot .player-progress-shell::before {
+    content: "";
+    position: absolute;
+    top: -32px;
+    right: 0;
+    bottom: -32px;
+    left: 0;
+  }
+}
+
 /* Compact layouts.
 
    Canvases narrower than the TV layout's smallest breakpoint: phones in
