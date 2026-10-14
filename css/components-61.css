@@ -65,6 +65,12 @@
    a remote that moves a highlight: 48 TV pixels, a 24 CSS px target on a
    phone, and a progress bar 6px tall. Give fingers 44px targets. */
 @media (pointer: coarse) {
+  /* Without this, iOS holds every tap back ~300ms in case it is the start of
+     a double-tap zoom. Panning and pinch-zoom still work. */
+  html {
+    touch-action: manipulation;
+  }
+
   /* Holding a control is a remote's long OK press (js/ui/navigation/
      touchHold.js), not a request to select text or open the iOS callout. */
   .screen {
@@ -368,5 +374,37 @@ html.layout-switching *::after {
 
   .cast-detail-shell .cast-detail-hero {
     padding-top: 112px;
+  }
+
+  /* --- sign-in: one column, the card below the title -------------------- */
+
+  .qr-layout {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 40px;
+    overflow-y: auto;
+    padding: calc(136px + env(safe-area-inset-top, 0px)) 32px
+      calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .qr-layout .qr-left-panel {
+    justify-content: flex-start;
+  }
+
+  .qr-layout .qr-card {
+    width: 100%;
+    height: auto;
+  }
+
+  .qr-layout .qr-actions {
+    padding-top: 32px;
+  }
+
+  .qr-layout .qr-action-btn {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 96px;
+    padding: 16px 24px;
+    line-height: 1.2;
   }
 }
