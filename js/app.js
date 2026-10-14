@@ -94,6 +94,11 @@ async function checkForAppUpdateOnStartup() {
     return;
   }
   updateCheckStarted = true;
+  // The prompt points at the TV installer. A browser loads whatever build
+  // its host serves, so there is nothing for the viewer to update.
+  if (Platform.isBrowser()) {
+    return;
+  }
 
   try {
     // Tizen can spend longer restoring the authenticated route because the
