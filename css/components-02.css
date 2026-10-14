@@ -132,6 +132,8 @@
   border: 1px solid var(--border-color);
   background: var(--card-bg);
   color: var(--text-color);
+  /* These are buttons, which would otherwise use the browser's 13px. */
+  font: inherit;
   box-sizing: border-box;
 }
 
