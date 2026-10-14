@@ -78,9 +78,15 @@
           }
           // iOS reports portrait dimensions in either orientation.
           var deviceWidth = landscape.matches ? Math.max(a, b) : Math.min(a, b);
+          // Pin the scale too: without it, browsers zoom in on a focused text
+          // field and keep that zoom, cropping the canvas until reload, and
+          // past it. iOS still lets the viewer pinch to zoom.
           viewport.setAttribute(
             "content",
-            "width=" + Math.round(deviceWidth * 2) + ", viewport-fit=cover"
+            "width=" +
+              Math.round(deviceWidth * 2) +
+              ", initial-scale=0.5, minimum-scale=0.5, maximum-scale=0.5, user-scalable=no" +
+              ", viewport-fit=cover"
           );
         }
 
