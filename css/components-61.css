@@ -498,7 +498,9 @@ html.layout-switching *::after {
   .settings-account-button-subtitle,
   .settings-about-copy,
   .experience-mode-card span,
-  .auth-simple-subtitle {
+  .auth-simple-subtitle,
+  .search-result-date,
+  .search-results-subtitle {
     font-size: 26px;
     line-height: 1.35;
   }
