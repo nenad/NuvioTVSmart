@@ -11,7 +11,8 @@ export function createSettingsScreenMethods14() {
     isSelectedSidebarAction,
     isRootSidebarNode,
     clamp,
-    isSettingsActivateEvent
+    isSettingsActivateEvent,
+    isCompactLayout
   } = internals;
 
   return {
@@ -93,14 +94,7 @@ export function createSettingsScreenMethods14() {
 
       if (zone === "nav") {
         await this.activateNavSelection();
-        const firstContent = this.container.querySelector(".settings-content-focusable");
-        if (firstContent) {
-          this.focusZone = "content";
-          this.contentFocusKey =
-            this.activeSection === "appearance" ? this.getAppearanceThemeFocusKey() : String(firstContent.dataset.focusKey || "");
-          this.rememberAppearanceThemeFocusKey(this.contentFocusKey);
-          this.applyFocus();
-        }
+        this.enterContentZone();
         return;
       }
 
@@ -320,6 +314,22 @@ export function createSettingsScreenMethods14() {
       event?.preventDefault?.();
       await this.activateFocused();
     },
+    enterContentZone() {
+      const firstContent = this.container.querySelector(".settings-content-focusable");
+      if (!firstContent) {
+        return false;
+      }
+      this.focusZone = "content";
+      this.contentFocusKey =
+        this.activeSection === "appearance" ? this.getAppearanceThemeFocusKey() : String(firstContent.dataset.focusKey || "");
+      this.rememberAppearanceThemeFocusKey(this.contentFocusKey);
+      this.applyFocus();
+      return true;
+    },
+    returnToSectionList() {
+      this.focusZone = "nav";
+      this.applyFocus();
+    },
     consumeBackRequest({ source = "" } = {}) {
       if (this.textDialog) {
         this.closeTextDialog();
@@ -329,6 +339,12 @@ export function createSettingsScreenMethods14() {
       if (this.optionDialog) {
         this.closeOptionDialog();
         void this.render({ refreshModel: false });
+        return true;
+      }
+      // Compact layouts show one pane at a time, so Back from a section
+      // returns to the section list rather than to the navigation.
+      if (this.focusZone === "content" && isCompactLayout()) {
+        this.returnToSectionList();
         return true;
       }
       // The browser has already moved back in its history. Opening the

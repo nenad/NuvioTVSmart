@@ -17,11 +17,15 @@ export function createSettingsScreenMethods13() {
     updateSettingsRailIndicators,
     focusSettingsNode,
     isScrollContainerAtBoundary,
-    isAppearanceThemeFocusKey
+    isAppearanceThemeFocusKey,
+    isCompactLayout
   } = internals;
 
   return {
     applyFocus() {
+      // Compact layouts show either the section list or one section; CSS
+      // picks the pane from this.
+      this.container.dataset.settingsZone = this.focusZone === "sidebar" ? "nav" : String(this.focusZone || "nav");
       this.container.querySelectorAll(".focusable.focused").forEach((node) => node.classList.remove("focused"));
       updateSettingsMarqueeTargets(this.container);
       const selectedNode = this.container.querySelector(".settings-nav-item.selected");
@@ -265,6 +269,11 @@ export function createSettingsScreenMethods13() {
       content.scrollTop += deltaY;
     },
     async handleClickEvent(event) {
+      if (event?.target?.closest?.(".settings-compact-back")) {
+        event?.preventDefault?.();
+        this.returnToSectionList();
+        return;
+      }
       const target = event?.target?.closest?.(
         ".settings-nav-item, .settings-content-focusable, .settings-dialog-option, [data-text-dialog-role='field']"
       );
@@ -280,6 +289,10 @@ export function createSettingsScreenMethods13() {
         }
         this.focusZone = "nav";
         await this.activateNavSelection();
+        // With one pane at a time, choosing a section opens it.
+        if (isCompactLayout()) {
+          this.enterContentZone();
+        }
         return;
       }
 

@@ -45,7 +45,9 @@ export function createSettingsScreenMethods01() {
     normalizeExpandedState,
     normalizeExpandedSections,
     readSettingsUiState,
-    isAppearanceThemeFocusKey
+    isAppearanceThemeFocusKey,
+    t,
+    escapeAttribute
   } = internals;
 
   return {
@@ -337,6 +339,10 @@ export function createSettingsScreenMethods01() {
       const copy = translateSectionCopy(section);
       return `
           <header class="settings-content-header">
+            <button type="button" class="settings-compact-back" aria-label="${escapeAttribute(t("sidebar.settings"))}">
+              ${iconSvg(ROW_ICONS.chevron, "settings-compact-back-icon")}
+              <span>${escapeHtml(t("sidebar.settings"))}</span>
+            </button>
             <h1 class="settings-title">${escapeHtml(copy.label)}</h1>
             <p class="settings-subtitle">${escapeHtml(copy.subtitle)}</p>
           </header>

@@ -1,3 +1,9 @@
+/* Only compact layouts have a back control in Settings: the TV shows the
+   section list beside the section. */
+.settings-compact-back {
+  display: none;
+}
+
 /* Compact layouts.
 
    Canvases narrower than the TV layout's smallest breakpoint: phones in
@@ -118,5 +124,56 @@
   .home-shell:has(.home-sidebar[data-collapsible="true"]) .home-main {
     margin-left: 0;
     padding-bottom: var(--compact-tabbar-total);
+  }
+
+  /* --- settings: section list, then one section ------------------------- */
+
+  .settings-shell .settings-workspace {
+    width: 100vw;
+    height: calc(100vh - var(--compact-tabbar-total));
+    margin: 0;
+    padding: 32px 32px 24px;
+    border: none;
+    border-radius: 0;
+    background: var(--bg-color);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The section list shows until a section is opened (applyFocus mirrors
+     the focus zone onto the screen as data-settings-zone). */
+  .settings-shell .settings-content-frame,
+  [data-settings-zone="content"] .settings-sidebar-frame,
+  [data-settings-zone="dialog"] .settings-sidebar-frame {
+    display: none;
+  }
+
+  [data-settings-zone="content"] .settings-shell .settings-content-frame,
+  [data-settings-zone="dialog"] .settings-shell .settings-content-frame {
+    display: block;
+  }
+
+  .settings-compact-back {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 8px;
+    min-height: 88px;
+    margin: -16px 0 8px -16px;
+    padding: 0 24px 0 8px;
+    border: none;
+    border-radius: 44px;
+    background: transparent;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+    font: inherit;
+    font-size: 30px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .settings-compact-back-icon {
+    width: 40px;
+    height: 40px;
+    transform: scaleX(-1);
+    fill: currentColor;
   }
 }

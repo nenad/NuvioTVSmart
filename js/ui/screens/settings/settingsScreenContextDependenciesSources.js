@@ -98,6 +98,7 @@ export { isFastHorizontalNavigationEnabled } from "../../../platform/sharedKeys.
 export { CW_DISPLAY_SNAPSHOT_KEY, CW_ENRICHMENT_CACHE_KEY } from "../home/homeConstants.js";
 
 export { I18n } from "../../../i18n/index.js";
+export { isCompactLayout } from "../../theme/compactLayout.js";
 
 export { isContentRtl } from "../../../core/util/contentTextDirection.js";
 
