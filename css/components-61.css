@@ -5,8 +5,8 @@
 }
 
 /* A browser's on-screen Back (js/ui/components/browserBackButton.js), on the
-   screens that have somewhere to go back to. Tab destinations, onboarding and
-   the player, which has controls of its own, leave it hidden. */
+   screens that have somewhere to go back to. Tab destinations and onboarding
+   leave it hidden. */
 .browser-back-button {
   position: fixed;
   top: calc(24px + env(safe-area-inset-top, 0px));
@@ -46,6 +46,11 @@
 [data-route="plugins"] .browser-back-button,
 [data-route="catalogOrder"] .browser-back-button,
 [data-route="debugConsole"] .browser-back-button {
+  display: flex;
+}
+
+/* In the player it comes and goes with the controls. */
+[data-route="player"]:has(.player-controls-overlay:not(.hidden)) .browser-back-button {
   display: flex;
 }
 
