@@ -38,7 +38,7 @@ export function mountBrowserBackButton() {
       event.stopImmediatePropagation();
       // The same path a remote's Back key takes: an open dialog or overlay
       // closes first, otherwise the route goes back.
-      FocusEngine.handleBack(event);
+      FocusEngine.handleBack(event, undefined, { source: "button" });
     },
     true
   );
