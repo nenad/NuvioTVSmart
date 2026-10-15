@@ -10,7 +10,8 @@ export function createMetaDetailsScreenMethods17() {
     DETAIL_SCROLL_MAX_FRAME_SECONDS,
     escapeSelectorValue,
     isCompactLayout,
-    isTouchScreen
+    isTouchScreen,
+    Platform
   } = internals;
 
   return {
@@ -136,6 +137,7 @@ export function createMetaDetailsScreenMethods17() {
         // On a phone the idle time is spent reading or scrolling by touch,
         // which does not reset the timer, and the trailer would take over
         // the screen. The trailer button still plays it.
+        Platform.isBrowser() ||
         isCompactLayout() ||
         isTouchScreen() ||
         !content ||
