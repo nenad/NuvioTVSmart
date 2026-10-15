@@ -24,12 +24,23 @@ function sendOk(type) {
   document.dispatchEvent(event);
 }
 
+// A right-click is a long press already over: press OK, date the press far
+// enough back that every screen's hold threshold has passed, and release.
+const RIGHT_CLICK_HELD_MS = 5000;
+
+function sendHeldOk() {
+  sendOk("keydown");
+  FocusEngine.activeKeyDownStartedAt?.set?.(`code:${OK.keyCode}`, Date.now() - RIGHT_CLICK_HELD_MS);
+  sendOk("keyup");
+}
+
 export function installTouchHold() {
-  if (!Platform.isBrowser() || !("ontouchstart" in window)) {
+  if (!Platform.isBrowser()) {
     return;
   }
 
   let pending = null;
+  let touching = false;
 
   const reset = () => {
     if (pending?.timer) {
@@ -41,6 +52,7 @@ export function installTouchHold() {
   document.addEventListener(
     "touchstart",
     (event) => {
+      touching = true;
       reset();
       if (event.touches.length !== 1) {
         return;
@@ -88,6 +100,10 @@ export function installTouchHold() {
   document.addEventListener(
     "touchend",
     (event) => {
+      // Android asks for the context menu after a hold, before this.
+      setTimeout(() => {
+        touching = false;
+      }, 0);
       if (pending?.pressed) {
         // The keys stand in for this tap; its click must not act again.
         event.preventDefault();
@@ -98,16 +114,36 @@ export function installTouchHold() {
     { capture: true, passive: false }
   );
 
-  document.addEventListener("touchcancel", reset, { capture: true, passive: true });
+  document.addEventListener(
+    "touchcancel",
+    () => {
+      touching = false;
+      reset();
+    },
+    { capture: true, passive: true }
+  );
 
-  // A held finger otherwise opens the browser's own menus: save image, copy
-  // link, the iOS callout. Text fields keep theirs (paste).
+  // The browser's own menu (save image, copy link, the iOS callout) would
+  // open on a held finger or a right-click; text fields keep theirs (paste).
+  // A right-click opens the item's hold menu instead. A held finger already
+  // has, on Android, by the time the browser asks.
   document.addEventListener(
     "contextmenu",
     (event) => {
-      if (!event.target?.closest?.("input, textarea")) {
-        event.preventDefault();
+      if (event.target?.closest?.("input, textarea")) {
+        return;
       }
+      event.preventDefault();
+      if (touching) {
+        return;
+      }
+      const target = FocusEngine.getPointerFocusable(event);
+      if (!target || !target.closest(".screen")) {
+        return;
+      }
+      FocusEngine.focusPointerTarget(target);
+      Router.getCurrentScreen()?.setFocusedNode?.(target);
+      sendHeldOk();
     },
     true
   );
