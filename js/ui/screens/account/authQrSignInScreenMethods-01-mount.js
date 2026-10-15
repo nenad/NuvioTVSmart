@@ -113,7 +113,7 @@ export function createAuthQrSignInScreenMethods01() {
               </div>
 
               <div class="qr-copy-block">
-                <h1 class="qr-title">${I18n.t("auth.qr.title")}</h1>
+                <h1 class="qr-title">${this.opensSignInLink() ? I18n.t("auth.qr.linkTitle") : I18n.t("auth.qr.title")}</h1>
                 <p id="qr-description" class="qr-description">${this.getLeftDescription()}</p>
                 ${this.renderConnectedAccountIdentity()}
               </div>
@@ -126,15 +126,7 @@ export function createAuthQrSignInScreenMethods01() {
                   <p id="qr-card-subtitle" class="qr-card-subtitle">${this.getCardSubtitle()}</p>
                 </header>
 
-                <p class="qr-login-instruction">
-                  ${
-                    this.isSignedIn
-                      ? I18n.t("auth.qr.syncedData")
-                      : this.useEmailLogin
-                        ? I18n.t("auth.email.instruction")
-                        : I18n.t("auth.qr.scanInstruction")
-                  }
-                </p>
+                ${this.renderLoginInstruction()}
                 ${this.renderLoginContent()}
                 ${!this.isSignedIn ? this.renderTermsAcknowledgement() : ""}
                 <div class="qr-actions">${this.renderActions()}</div>
@@ -193,8 +185,12 @@ export function createAuthQrSignInScreenMethods01() {
           <div id="qr-container" class="qr-code-frame"></div>
           <div id="qr-manual-text" class="qr-manual-text"></div>
           <div id="qr-code-text" class="qr-code-text"></div>
-          <div id="qr-expiry" class="qr-expiry"></div>
-          <div id="qr-status" class="qr-status">${escapeHtml(I18n.t("auth.qr.waitingApproval"))}</div>
+          ${
+            this.opensSignInLink()
+              ? `<div id="qr-status" class="qr-status qr-status-quiet"></div>`
+              : `<div id="qr-expiry" class="qr-expiry"></div>
+          <div id="qr-status" class="qr-status">${escapeHtml(I18n.t("auth.qr.waitingApproval"))}</div>`
+          }
         `;
     },
     renderConnectedAccountIdentity() {
@@ -284,7 +280,7 @@ export function createAuthQrSignInScreenMethods01() {
         ? `<button type="button" id="qr-refresh-btn" class="qr-action-btn qr-action-btn-secondary focusable" data-action="signout">
                ${escapeHtml(I18n.t("auth.account.signOut"))}
              </button>`
-        : this.useEmailLogin
+        : this.useEmailLogin || this.opensSignInLink()
           ? ""
           : `<button type="button" id="qr-refresh-btn" class="qr-action-btn qr-action-btn-primary focusable" data-action="refresh">
                  ${escapeHtml(I18n.t("auth.qr.refresh"))}

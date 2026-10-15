@@ -154,15 +154,52 @@ export function createAuthQrSignInScreenMethods03() {
       }
       Router.back({ skipConsume: true });
     },
+    // A QR code asks for a second device to scan it. On a touch screen this
+    // is most likely the phone that would do the scanning, so offer the
+    // sign-in page as a link instead.
+    opensSignInLink() {
+      if (!Platform.isBrowser()) return false;
+      try {
+        return Boolean(globalThis.matchMedia?.("(pointer: coarse)")?.matches);
+      } catch (_) {
+        return false;
+      }
+    },
+    // The sign-in link shows only errors: no QR progress, and no expiry,
+    // since it renews itself.
+    setProgressStatus(text) {
+      this.setStatus(this.opensSignInLink() ? "" : text);
+    },
+    handleQrExpired() {
+      if (this.opensSignInLink()) {
+        void this.startQr();
+        return;
+      }
+      this.setStatus(I18n.t("auth.qr.expired"));
+    },
     getLeftDescription() {
       if (this.isSignedIn) return I18n.t("auth.qr.leftDescriptionSignedIn");
       if (this.useEmailLogin) return I18n.t("auth.email.hint");
+      if (this.opensSignInLink()) return I18n.t("auth.qr.linkDescription");
       return I18n.t("auth.qr.leftDescriptionSignedOut");
     },
     getCardSubtitle() {
       if (this.isSignedIn) return I18n.t("auth.qr.cardSubtitleSignedIn");
       if (this.useEmailLogin) return I18n.t("auth.email.instruction");
+      if (this.opensSignInLink()) return I18n.t("auth.qr.linkInstruction");
       return I18n.t("auth.qr.cardSubtitleSignedOut");
+    },
+    renderLoginInstruction() {
+      const instruction = this.isSignedIn
+        ? I18n.t("auth.qr.syncedData")
+        : this.useEmailLogin
+          ? I18n.t("auth.email.instruction")
+          : this.opensSignInLink()
+            ? I18n.t("auth.qr.linkInstruction")
+            : I18n.t("auth.qr.scanInstruction");
+      // Signed out, the card subtitle is this same string; say it once.
+      if (instruction === this.getCardSubtitle()) return "";
+      return `<p class="qr-login-instruction">${instruction}</p>`;
     },
     getBackButtonLabel() {
       if (this.onboardingMode && !this.isSignedIn) {

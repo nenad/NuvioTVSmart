@@ -160,6 +160,37 @@ button:focus-visible {
   border-radius: 0;
 }
 
+/* In place of the QR code on touch screens: a button to the same page. The
+   frame drops its white square around it. */
+.qr-code-frame:has(.qr-open-link) {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  background: none;
+}
+
+/* With the link, the status line only shows errors. */
+.qr-status-quiet:empty {
+  display: none;
+}
+
+.qr-open-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 96px;
+  padding: 16px 32px;
+  box-sizing: border-box;
+  border-radius: 48px;
+  background: #fff;
+  color: #000;
+  font-size: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .qr-code-text {
   margin: 0;
   font-size: 22px;
