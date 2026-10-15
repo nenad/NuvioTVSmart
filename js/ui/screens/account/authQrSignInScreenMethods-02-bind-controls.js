@@ -143,7 +143,7 @@ export function createAuthQrSignInScreenMethods02() {
       this.updateActionButtons();
       this.stopIntervals();
       this.clearQr();
-      this.setStatus(I18n.t("auth.qr.preparing"));
+      this.setProgressStatus(I18n.t("auth.qr.preparing"));
 
       try {
         const result = await QrLoginService.start();
@@ -153,7 +153,7 @@ export function createAuthQrSignInScreenMethods02() {
           return;
         }
         this.renderQr(result);
-        this.setStatus(I18n.t("auth.qr.scanAndSignIn"));
+        this.setProgressStatus(I18n.t("auth.qr.scanAndSignIn"));
         this.startPolling(result.code, result.deviceNonce, result.pollIntervalSeconds || 3);
       } finally {
         if (this.isMounted) {
@@ -227,8 +227,8 @@ export function createAuthQrSignInScreenMethods02() {
           });
         }
         if (remaining <= 0) {
-          this.setStatus(I18n.t("auth.qr.expired"));
           this.stopIntervals();
+          this.handleQrExpired();
         }
       };
       renderRemaining();
@@ -274,10 +274,10 @@ export function createAuthQrSignInScreenMethods02() {
             return;
           }
           if (status === "pending") {
-            this.setStatus(this.qrLabel("auth.qr.waitingApproval"));
+            this.setProgressStatus(I18n.t("auth.qr.waitingApproval"));
           } else if (["expired", "used", "cancelled"].includes(status)) {
-            this.setStatus(I18n.t("auth.qr.expired"));
             this.stopPollingOnly();
+            this.handleQrExpired();
             return;
           } else if (!status) {
             this.setStatus(this.toFriendlyQrError(QrLoginService.getLastError()));

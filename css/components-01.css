@@ -169,6 +169,11 @@ button:focus-visible {
   background: none;
 }
 
+/* With the link, the status line only shows errors. */
+.qr-status-quiet:empty {
+  display: none;
+}
+
 .qr-open-link {
   display: flex;
   align-items: center;
