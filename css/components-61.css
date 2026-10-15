@@ -491,6 +491,19 @@ html.layout-switching *::after {
     scroll-padding-left: var(--compact-edge);
   }
 
+  /* --- app dialogs (title actions, confirmations): the TV sizes them as a
+     share of the width, a third for option menus, which leaves a phone a
+     sliver. nuvioDialog sets that share inline. */
+
+  .nuvio-dialog-backdrop {
+    padding: 0 32px;
+  }
+
+  .nuvio-dialog-panel {
+    width: 100%;
+    max-width: none !important;
+  }
+
   /* --- player dialogs: fit the width -------------------------------------
      The subtitle dialog's three rails (languages, tracks, style) need about
      800px, more than a portrait canvas; the style rail ran off screen. Put
