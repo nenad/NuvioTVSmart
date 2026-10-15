@@ -86,12 +86,25 @@ export function createPlayerControllerMethods18() {
         }
       }
       // A browser cannot play most of what addons serve; a configured
-      // streaming server repackages it as HLS.
+      // streaming server repackages it as HLS. That includes retries with a
+      // forced engine: the file itself never plays here, so a retry goes
+      // through the converter again, with the other HLS engine.
       let convertedUrl = "";
-      if (!forceEngine && BrowserStreamConverter.shouldConvert(requestedUrl, sourceType, requestHeaders)) {
+      if (BrowserStreamConverter.shouldConvert(requestedUrl, sourceType, requestHeaders)) {
         convertedUrl = BrowserStreamConverter.toHlsUrl(requestedUrl, this.video);
         sourceType = "application/vnd.apple.mpegurl";
+        if (forceEngine && forceEngine !== "hls.js" && forceEngine !== "native-hls") {
+          // Count the requested engine as tried, or the failover ladder would
+          // offer it again after every converted attempt.
+          this.rememberPlaybackEngineAttempt(requestedUrl, forceEngine);
+          const attempted = this.getAttemptedPlaybackEngines(requestedUrl);
+          if (attempted.has("hls.js") && attempted.has("native-hls")) {
+            throw new Error("Streaming server playback failed with every HLS engine");
+          }
+          forceEngine = attempted.has("hls.js") ? "native-hls" : "hls.js";
+        }
       }
+      this.currentPlaybackConverted = Boolean(convertedUrl);
       if (!forceEngine && this.isTizenHlsSource(url, sourceType)) {
         // Load hls.js before choosing the engine so getPlaybackEngineCandidates()
         // can distinguish a supported MSE path from a platform that needs the
