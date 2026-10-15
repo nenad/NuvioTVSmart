@@ -9,7 +9,8 @@ export function createMetaDetailsScreenMethods17() {
     DETAIL_SCROLL_DAMPING_RATIO,
     DETAIL_SCROLL_MAX_FRAME_SECONDS,
     escapeSelectorValue,
-    isCompactLayout
+    isCompactLayout,
+    isTouchScreen
   } = internals;
 
   return {
@@ -136,6 +137,7 @@ export function createMetaDetailsScreenMethods17() {
         // which does not reset the timer, and the trailer would take over
         // the screen. The trailer button still plays it.
         isCompactLayout() ||
+        isTouchScreen() ||
         !content ||
         Number(content.scrollTop || 0) > 160 ||
         !focused?.matches?.('.series-detail-actions [data-action="playDefault"]') ||
