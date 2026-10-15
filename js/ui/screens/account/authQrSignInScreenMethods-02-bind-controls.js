@@ -172,6 +172,10 @@ export function createAuthQrSignInScreenMethods02() {
       const content = String(loginUrl || "").trim();
       if (!content) {
         qrContainer.innerHTML = `<span class="qr-code-unavailable">${escapeHtml(I18n.t("auth.qr.unavailable"))}</span>`;
+      } else if (this.opensSignInLink()) {
+        qrContainer.innerHTML = `<a class="qr-open-link" href="${escapeHtml(content)}" target="_blank" rel="noopener">${escapeHtml(
+          I18n.t("auth.qr.openSignInPage")
+        )}</a>`;
       } else {
         qrContainer.innerHTML = `<canvas class="qr-image qr-image-canvas" aria-label="${escapeHtml(
           I18n.t("auth.qr.qrImageAlt")
@@ -183,7 +187,7 @@ export function createAuthQrSignInScreenMethods02() {
           qrContainer.innerHTML = `<span class="qr-code-unavailable">${escapeHtml(I18n.t("auth.qr.unavailable"))}</span>`;
         }
       }
-      if (manualText) {
+      if (manualText && !this.opensSignInLink()) {
         const manualUrl = String(verificationUri || "")
           .replace(/^https?:\/\//i, "")
           .replace(/\/+$/, "");
