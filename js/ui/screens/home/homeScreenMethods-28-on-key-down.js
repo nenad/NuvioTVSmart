@@ -28,8 +28,14 @@ export function createHomeScreenMethods28() {
         return true;
       }
       if (this.suppressHoldMenuEnterUntilKeyUp && code === 13) {
-        event.preventDefault?.();
-        return;
+        // The flag waits for the key-up of the OK that opened or answered the
+        // hold menu. The menu can swallow that key-up, and a tap closes it
+        // with no key involved; a fresh press proves the old one is over.
+        if (event?.repeat) {
+          event.preventDefault?.();
+          return;
+        }
+        this.suppressHoldMenuEnterUntilKeyUp = false;
       }
       const isEnterHoldTarget = code === 13 && this.isHomeHoldTarget(currentFocusedNode);
       if (!isEnterHoldTarget) {
