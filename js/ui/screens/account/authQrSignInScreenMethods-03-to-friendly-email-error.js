@@ -164,6 +164,16 @@ export function createAuthQrSignInScreenMethods03() {
       if (this.useEmailLogin) return I18n.t("auth.email.instruction");
       return I18n.t("auth.qr.cardSubtitleSignedOut");
     },
+    renderLoginInstruction() {
+      const instruction = this.isSignedIn
+        ? I18n.t("auth.qr.syncedData")
+        : this.useEmailLogin
+          ? I18n.t("auth.email.instruction")
+          : I18n.t("auth.qr.scanInstruction");
+      // Signed out, the card subtitle is this same string; say it once.
+      if (instruction === this.getCardSubtitle()) return "";
+      return `<p class="qr-login-instruction">${instruction}</p>`;
+    },
     getBackButtonLabel() {
       if (this.onboardingMode && !this.isSignedIn) {
         return I18n.t("auth.qr.continueWithoutAccount");
