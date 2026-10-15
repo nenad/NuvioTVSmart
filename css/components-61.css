@@ -75,7 +75,10 @@
      touchHold.js), not a request to select text or open the iOS callout.
      The whole page, not only the screens: the menu a hold opens is a dialog
      on <body>, and it appears under the finger that is still down. */
+  /* The build prefixes for the TVs' Chromium, which needs no -webkit-
+     user-select and so would strip it; Safari still needs it. */
   body {
+    /* autoprefixer: off */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
@@ -83,6 +86,7 @@
 
   input,
   textarea {
+    /* autoprefixer: off */
     -webkit-user-select: text;
     user-select: text;
   }
