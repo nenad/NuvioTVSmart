@@ -274,7 +274,7 @@ export function createAuthQrSignInScreenMethods02() {
             return;
           }
           if (status === "pending") {
-            this.setStatus(I18n.t("auth.qr.waitingApproval"));
+            this.setStatus(this.qrLabel("auth.qr.waitingApproval"));
           } else if (["expired", "used", "cancelled"].includes(status)) {
             this.setStatus(I18n.t("auth.qr.expired"));
             this.stopPollingOnly();

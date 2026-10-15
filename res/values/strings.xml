@@ -1830,6 +1830,9 @@
     <string name="auth_qr_open_sign_in_page">Open sign-in page</string>
     <string name="auth_qr_link_instruction">Open the sign-in page, approve, then return here.</string>
     <string name="auth_qr_link_description">Sign in with email and password in your browser.</string>
+    <string name="auth_qr_link_title">Sign In</string>
+    <string name="auth_qr_link_refresh">New Link</string>
+    <string name="auth_qr_link_waiting_approval">Waiting for approval…</string>
     <string name="auth_qr_code_display">Code: %1$s</string>
     <string name="auth_qr_refresh">Refresh QR</string>
     <string name="auth_qr_continue_without_account">Continue without account</string>
