@@ -491,6 +491,51 @@ html.layout-switching *::after {
     scroll-padding-left: var(--compact-edge);
   }
 
+  /* --- player dialogs: fit the width -------------------------------------
+     The subtitle dialog's three rails (languages, tracks, style) need about
+     800px, more than a portrait canvas; the style rail ran off screen. Put
+     languages and tracks side by side and the style controls under them. */
+
+  .player-subtitle-modal,
+  .player-audio-modal {
+    left: 24px;
+    right: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+  }
+
+  .player-subtitle-modal {
+    height: min(80vh, calc(100vh - 160px));
+  }
+
+  .player-subtitle-overlay-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, auto);
+  }
+
+  .player-subtitle-overlay-grid .player-subtitle-style-rail {
+    grid-column: 1 / -1;
+    max-height: 40vh;
+  }
+
+  /* The audio dialog's track list and its controls (amplification, keep
+     between sessions) sit side by side on a TV; stack them. */
+  .player-audio-overlay-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .player-audio-track-list {
+    width: auto;
+  }
+
+  .player-sources-panel {
+    width: 100%;
+    border-radius: 0;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
   /* --- stream picker: title above, sources below ----------------------- */
 
   .stream-route-shell .stream-route-content {
