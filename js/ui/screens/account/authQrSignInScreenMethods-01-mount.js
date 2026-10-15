@@ -67,6 +67,16 @@ export function createAuthQrSignInScreenMethods01() {
       ScreenUtils.show(this.container);
       this.render();
 
+      if (!this.boundResumeQrPoll) {
+        this.boundResumeQrPoll = () => {
+          if (globalThis.document?.visibilityState !== "visible") {
+            return;
+          }
+          this.kickQrPollOnReturn?.();
+        };
+        globalThis.document?.addEventListener?.("visibilitychange", this.boundResumeQrPoll);
+      }
+
       if (this.useQrLogin && !this.isSignedIn) {
         void this.startQr().catch((error) => {
           if (!this.isMounted || this.isLeaving) {

@@ -134,11 +134,11 @@ export function createAuthQrSignInScreenMethods03() {
         // explicit onboarding action (or after a real account is restored).
         AuthManager.clearAnonymousSession?.();
       }
-      this.cleanup();
       if (!this.onboardingMode && this.hasBackDestination) {
-        Router.back();
+        Router.back({ skipConsume: true, skipHistory: true });
         return;
       }
+      this.cleanup();
       Router.navigate("home", {}, { replaceHistory: true, skipStackPush: true });
     },
     leaveAuthScreen() {
@@ -296,6 +296,10 @@ export function createAuthQrSignInScreenMethods03() {
       this.isMounted = false;
       this.isLeaving = true;
       this.showSignOutConfirmation = false;
+      if (this.boundResumeQrPoll) {
+        globalThis.document?.removeEventListener?.("visibilitychange", this.boundResumeQrPoll);
+        this.boundResumeQrPoll = null;
+      }
       this.stopIntervals();
       this.lastActivation = null;
       this.qrResult = null;

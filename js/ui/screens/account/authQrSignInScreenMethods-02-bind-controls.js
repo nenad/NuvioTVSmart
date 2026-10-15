@@ -236,6 +236,8 @@ export function createAuthQrSignInScreenMethods02() {
     },
     startPolling(code, deviceNonce, pollIntervalSeconds = 3) {
       this.stopPollingOnly();
+      this.qrPollCode = String(code || "");
+      this.qrDeviceNonce = String(deviceNonce || "");
       this.qrPollIntervalSeconds = Math.max(2, Number(pollIntervalSeconds || 3));
       const pollOnce = async () => {
         if (!this.isMounted || this.isLeaving || this.isPolling) return;
@@ -292,6 +294,18 @@ export function createAuthQrSignInScreenMethods02() {
         }
       };
       this.pollTimer = setTimeout(pollOnce, Math.max(2, Number(this.qrPollIntervalSeconds || 3)) * 1000);
+    },
+    kickQrPollOnReturn() {
+      if (!this.isMounted || this.isLeaving || this.isSignedIn || !this.useQrLogin) {
+        return;
+      }
+      if (!this.qrPollCode || !this.qrDeviceNonce) {
+        return;
+      }
+      if (this.isPolling) {
+        return;
+      }
+      this.startPolling(this.qrPollCode, this.qrDeviceNonce, this.qrPollIntervalSeconds || 3);
     },
     toFriendlyQrError(rawError) {
       const normalizedError = String(rawError || "")
