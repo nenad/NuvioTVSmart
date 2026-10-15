@@ -81,12 +81,17 @@
           // Pin the scale too: without it, browsers zoom in on a focused text
           // field and keep that zoom, cropping the canvas until reload, and
           // past it. iOS still lets the viewer pinch to zoom.
+          var scale = "initial-scale=0.5, minimum-scale=0.5, maximum-scale=0.5, user-scalable=no";
+          // Sideways, the TV layout runs edge to edge and knows nothing of a
+          // notch or Dynamic Island, so keep it inside the safe area: no
+          // viewport-fit=cover, and a width the browser derives from the
+          // scale and that area. Upright, the compact layout pads for the
+          // insets itself.
           viewport.setAttribute(
             "content",
-            "width=" +
-              Math.round(deviceWidth * 2) +
-              ", initial-scale=0.5, minimum-scale=0.5, maximum-scale=0.5, user-scalable=no" +
-              ", viewport-fit=cover"
+            landscape.matches
+              ? scale
+              : "width=" + Math.round(deviceWidth * 2) + ", " + scale + ", viewport-fit=cover"
           );
         }
 
