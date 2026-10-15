@@ -59,6 +59,7 @@ export { StartupSyncService } from "../../../core/profile/startupSyncService.js"
 export { ProfileSettingsSyncService } from "../../../core/profile/profileSettingsSyncService.js";
 
 export { Platform } from "../../../platform/index.js";
+export { isCompactLayout } from "../../theme/compactLayout.js";
 
 export { WatchProgressSource } from "../../../data/local/traktSettingsStore.js";
 

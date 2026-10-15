@@ -172,6 +172,11 @@ export function createPlayerScreenMethods69() {
       return true;
     },
     onPointerSurfaceActivate(target) {
+      // A tap outside an open dialog closes it, as Back does.
+      if (target && this.isDialogOpen() && target.closest?.(".player-modal-backdrop")) {
+        this.consumeBackRequest();
+        return true;
+      }
       if (
         !target ||
         this.isExternalFrameMode() ||

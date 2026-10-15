@@ -290,6 +290,52 @@ function legacyDeclarationFallbackPlugin() {
 
 legacyDeclarationFallbackPlugin.postcss = true;
 
+// Compact layouts (css/components-61.css) draw the TV canvas on a narrow
+// viewport: phones in portrait, whose canvas is twice the device width, and
+// narrow desktop windows. Lengths written as min/max/clamp of vw or vh scale
+// the 1920x1080 design with the viewport, so there they shrink to a fraction
+// of their size, while plain px lengths do not. On such a canvas one TV pixel
+// is one Android dp, so each of those lengths should hold its design value.
+// Emit it for the compact breakpoint right after the rule it belongs to, so
+// later rules still override it exactly as they do on a TV.
+const COMPACT_LAYOUT_MEDIA = "(max-width: 1099px)";
+const VIEWPORT_MATH_PATTERN = /\b(?:min|max|clamp)\([^;]*\d(?:vw|vh)\b/i;
+
+function compactCanvasLengthPlugin() {
+  return {
+    postcssPlugin: "nuvio-compact-canvas-lengths",
+    Once(root) {
+      root.each((rule) => {
+        if (rule.type !== "rule") {
+          return;
+        }
+        const resolved = [];
+        rule.each((decl) => {
+          if (decl.type !== "decl" || !VIEWPORT_MATH_PATTERN.test(decl.value)) {
+            return;
+          }
+          const designValue = toLegacyLengthValue(decl.value);
+          if (designValue && designValue !== decl.value && !/\d(?:vw|vh)\b/i.test(designValue)) {
+            resolved.push(decl.clone({ value: designValue }));
+          }
+        });
+        if (!resolved.length) {
+          return;
+        }
+        const compact = postcss.atRule({ name: "media", params: COMPACT_LAYOUT_MEDIA });
+        // append() reparents the declarations; clone({ nodes }) would not.
+        const compactRule = rule.clone();
+        compactRule.removeAll();
+        compactRule.append(resolved);
+        compact.append(compactRule);
+        rule.after(compact);
+      });
+    }
+  };
+}
+
+compactCanvasLengthPlugin.postcss = true;
+
 function unsupportedSelectorFallbackPlugin() {
   return {
     postcssPlugin: "nuvio-unsupported-selector-fallbacks",
@@ -464,6 +510,7 @@ async function buildCSS() {
           overrideBrowserslist: [`Chrome ${compatibilityPolicy.chromiumVersion}`],
           grid: "autoplace"
         }),
+        compactCanvasLengthPlugin(),
         legacyDeclarationFallbackPlugin(),
         unsupportedSelectorFallbackPlugin(),
         flexGapFallbackPlugin(),

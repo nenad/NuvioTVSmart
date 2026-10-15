@@ -78,7 +78,9 @@ export const FocusEngine = {
     return Platform.isWebOS() || Platform.isBrowser();
   },
 
-  handleBack(event, normalizedEvent = buildNormalizedEvent(event)) {
+  // source says where a Back came from when it was not a key: "button" for
+  // the browser's on-screen Back. Screens may treat those differently.
+  handleBack(event, normalizedEvent = buildNormalizedEvent(event), { source = "" } = {}) {
     const now = Date.now();
     const elapsedSinceHandled = now - Number(this.lastBackHandledAt || 0);
     if (normalizedEvent.repeat || elapsedSinceHandled < BACK_DEBOUNCE_MS) {
@@ -99,7 +101,7 @@ export const FocusEngine = {
     }
 
     const currentScreen = Router.getCurrentScreen();
-    const consumeResult = currentScreen?.consumeBackRequest?.();
+    const consumeResult = currentScreen?.consumeBackRequest?.({ source });
     if (consumeResult) {
       if (consumeResult === "history") {
         return;

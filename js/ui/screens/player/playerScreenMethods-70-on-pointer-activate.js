@@ -191,7 +191,7 @@ export function createPlayerScreenMethods70() {
         this.pauseOverlayTimer
       );
     },
-    consumeBackRequest() {
+    consumeBackRequest({ source = "" } = {}) {
       if (this.isStartupErrorVisible()) {
         if (this.navigateBackToStreamScreen()) {
           return true;
@@ -301,8 +301,10 @@ export function createPlayerScreenMethods70() {
 
       // Match Android TV: when the on screen controls are showing, Back hides
       // them and keeps the video playing. The player only leaves on a Back press
-      // once the controls are already hidden.
-      if (this.controlsVisible && !this.nextEpisodeBackExitArmed) {
+      // once the controls are already hidden. A Back that is not a key (the
+      // browser's on-screen Back, which shows only with the controls, or its
+      // history) means leave.
+      if (this.controlsVisible && !this.nextEpisodeBackExitArmed && !source) {
         this.setControlsVisible(false, { focus: false });
         return true;
       }

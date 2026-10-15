@@ -3,6 +3,7 @@ import * as internals from "./metaDetailsScreenContext.js";
 
 export function createMetaDetailsScreenMethods07() {
   const {
+    isTouchScreen,
     ScreenUtils,
     LayoutPreferences,
     showStandardDetailRatings,
@@ -240,6 +241,13 @@ export function createMetaDetailsScreenMethods07() {
                   <span>${escapeHtml(playLabel)}</span>
                 </button>
                 ${this.getActiveResumeProgress() ? `<button class="series-secondary-btn focusable" data-action="playFromBeginning">${escapeHtml(t("detail.playFromBeginning", {}, "Play from Beginning"))}</button>` : ""}
+                ${
+                  // Home removes a title from Continue Watching by holding its
+                  // card; offer it here too, where a touch screen can see it.
+                  this.getActiveResumeProgress() && isTouchScreen()
+                    ? `<button class="series-secondary-btn focusable" data-action="removeResumeProgress">${escapeHtml(t("detail_remove_from_continue_watching", {}, "Remove from Continue Watching"))}</button>`
+                    : ""
+                }
                 <button class="series-circle-btn focusable${this.isSavedInLibrary ? " is-library-selected" : ""}" data-action="toggleLibrary">
                   ${renderLibraryGlyph(this.isSavedInLibrary)}
                 </button>

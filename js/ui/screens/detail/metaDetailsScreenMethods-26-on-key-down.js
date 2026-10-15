@@ -212,6 +212,14 @@ export function createMetaDetailsScreenMethods26() {
         return;
       }
 
+      if (action === "removeResumeProgress") {
+        const focusRestore = this.captureDetailFocus();
+        await watchProgressRepository.removeProgress(this.params?.itemId);
+        await this.refreshEpisodePlaybackState();
+        this.render(this.meta, focusRestore);
+        return;
+      }
+
       if (action === "toggleTrailer") {
         this.playTrailer({ muted: false, restart: true, initiatedByUser: true });
         return;

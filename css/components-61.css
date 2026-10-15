@@ -1,0 +1,782 @@
+/* Only compact layouts have a back control in Settings: the TV shows the
+   section list beside the section. */
+.settings-compact-back {
+  display: none;
+}
+
+/* A browser's on-screen Back (js/ui/components/browserBackButton.js), on the
+   screens that have somewhere to go back to. Tab destinations and onboarding
+   leave it hidden. */
+.browser-back-button {
+  position: fixed;
+  top: calc(24px + env(safe-area-inset-top, 0px));
+  left: calc(24px + env(safe-area-inset-left, 0px));
+  z-index: 30;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.64);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.browser-back-button svg {
+  width: 52px;
+  height: 52px;
+  fill: currentColor;
+}
+
+[data-route="account"] .browser-back-button,
+[data-route="detail"] .browser-back-button,
+[data-route="stream"] .browser-back-button,
+[data-route="castDetail"] .browser-back-button,
+[data-route="catalogSeeAll"] .browser-back-button,
+[data-route="tmdbEntityBrowse"] .browser-back-button,
+[data-route="folderDetail"] .browser-back-button,
+[data-route="trakt"] .browser-back-button,
+[data-route="supportersContributors"] .browser-back-button,
+[data-route="licensesAttributions"] .browser-back-button,
+[data-route="plugin"] .browser-back-button,
+[data-route="plugins"] .browser-back-button,
+[data-route="catalogOrder"] .browser-back-button,
+[data-route="debugConsole"] .browser-back-button {
+  display: flex;
+}
+
+/* In the player it comes and goes with the controls. */
+[data-route="player"]:has(.player-controls-overlay:not(.hidden)) .browser-back-button {
+  display: flex;
+}
+
+/* The controls overlay ignores the pointer and each control opts back in;
+   the progress bar never did, so seekProgressFromPointer could not be
+   reached by a Magic Remote, a mouse or a finger. */
+#playerUiRoot .player-progress-shell {
+  pointer-events: auto;
+}
+
+/* Touch screens, in either orientation. The player's controls are sized for
+   a remote that moves a highlight: 48 TV pixels, a 24 CSS px target on a
+   phone, and a progress bar 6px tall. Give fingers 44px targets. */
+@media (pointer: coarse) {
+  /* Without this, iOS holds every tap back ~300ms in case it is the start of
+     a double-tap zoom. Panning and pinch-zoom still work. */
+  html {
+    touch-action: manipulation;
+  }
+
+  /* Holding a control is a remote's long OK press (js/ui/navigation/
+     touchHold.js), not a request to select text or open the iOS callout.
+     The whole page, not only the screens: the menu a hold opens is a dialog
+     on <body>, and it appears under the finger that is still down. */
+  /* The build prefixes for the TVs' Chromium, which needs no -webkit-
+     user-select and so would strip it; Safari still needs it. */
+  body {
+    /* autoprefixer: off */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea {
+    /* autoprefixer: off */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  #playerUiRoot {
+    --player-control-size: 88px;
+    --player-control-icon: 44px;
+  }
+
+  /* A taller, invisible hit area; taps on it reach the bar's own handler. */
+  #playerUiRoot .player-progress-shell {
+    position: relative;
+  }
+
+  #playerUiRoot .player-progress-shell::before {
+    content: "";
+    position: absolute;
+    top: -32px;
+    right: 0;
+    bottom: -32px;
+    left: 0;
+  }
+}
+
+/* Set for a frame or two while a rotation swaps compact and TV layouts
+   (installCompactLayoutTransitionGuard in js/ui/theme/compactLayout.js). */
+html.layout-switching *,
+html.layout-switching *::before,
+html.layout-switching *::after {
+  transition: none !important;
+}
+
+/* A mouse in a browser. Hover does not move focus here (it would reflow
+   Home's rows under the cursor), so mark what is under the cursor instead:
+   the same ring as focus, fainter. The Magic Remote moves focus itself. */
+@media (hover: hover) and (pointer: fine) {
+  html:not(.webos-pointer-remote) .screen .focusable {
+    cursor: pointer;
+  }
+
+  html:not(.webos-pointer-remote)
+    .home-screen-shell
+    .home-poster-card:hover:not(.focused)
+    .home-poster-frame {
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+  }
+
+  html:not(.webos-pointer-remote)
+    .screen
+    .focusable:hover:not(.focused):not(.home-poster-card):not(input):not(textarea) {
+    outline: 3px solid rgba(255, 255, 255, 0.55);
+    /* Inside the edge: rows such as Continue Watching clip what sticks out. */
+    outline-offset: -3px;
+  }
+}
+
+/* Compact layouts.
+
+   Canvases narrower than the TV layout's smallest breakpoint: phones in
+   portrait (whose canvas is twice the device width, see configureTouchCanvas
+   in index.html) and narrow desktop windows. Sizes stay in TV pixels, so a
+   value here is twice its Android dp, like everywhere else. TVs never match. */
+
+@media (max-width: 1099px) {
+  /* A browser tab's 100vh is the viewport with the toolbar collapsed, so
+     Safari's toolbar covers the bottom of every full-height screen. Size them
+     to what is visible instead. Home-screen apps have no toolbar; both match. */
+  :root {
+    --compact-vh: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    :root {
+      --compact-vh: 100dvh;
+    }
+  }
+
+  #app,
+  .screen,
+  .qr-layout,
+  .profile-screen,
+  .home-shell,
+  .home-main,
+  .search-screen-shell,
+  .search-content,
+  .discover-shell,
+  .trakt-route-shell,
+  .plugins-route-shell,
+  .supporters-route-shell,
+  .debug-console-shell {
+    height: var(--compact-vh);
+  }
+
+  .account-shell {
+    min-height: var(--compact-vh);
+  }
+
+  .home-shell {
+    /* 64dp tab bar, plus the home indicator area on notched phones. */
+    --compact-tabbar-height: 128px;
+    --compact-tabbar-inset: env(safe-area-inset-bottom, 0px);
+    --compact-tabbar-total: calc(var(--compact-tabbar-height) + var(--compact-tabbar-inset));
+  }
+
+  /* --- navigation: the sidebar becomes a bottom tab bar ------------------ */
+
+  .home-shell .home-sidebar,
+  .home-shell .home-sidebar[data-collapsible="true"]:not(.expanded),
+  .home-shell .home-sidebar.expanded,
+  .home-shell .home-sidebar.opening,
+  .home-shell .home-sidebar.content-expanded {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    width: 100%;
+    height: var(--compact-tabbar-total);
+    padding: 0 16px var(--compact-tabbar-inset);
+    flex-direction: row;
+    align-items: stretch;
+    border-top: 2px solid rgba(255, 255, 255, 0.08);
+    background: rgba(12, 12, 12, 0.94);
+    transition: none;
+    overflow: visible;
+  }
+
+  /* Four tabs in the list and the profile beside it share the bar evenly. */
+  .home-shell .home-sidebar .home-nav-list {
+    order: 1;
+    flex: 4 1 0;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 0;
+    /* The rail nudges its list up to centre it optically; a bar must not. */
+    transform: none;
+  }
+
+  .home-shell .home-nav-item,
+  .home-shell .home-profile-pill {
+    flex: 1 1 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 12px 0 8px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    border-radius: 0;
+    background: transparent;
+    transform: none;
+  }
+
+  /* The TV only shows the profile once the sidebar expands; a tab bar has
+     no expanded state, so it is a permanent last tab. */
+  .home-shell .home-profile-pill {
+    order: 2;
+    flex: 1 1 0;
+    min-width: 0;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .home-shell .home-profile-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .home-shell .home-nav-icon-wrap {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+  }
+
+  .home-shell .home-profile-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    font-size: 22px;
+  }
+
+  .home-shell .home-nav-label,
+  .home-shell .home-sidebar.content-expanded .home-nav-label,
+  .home-shell .home-sidebar.opening .home-nav-label,
+  .home-shell .home-profile-name {
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    font-size: 22px;
+    line-height: 28px;
+    letter-spacing: 0.2px;
+    text-align: center;
+  }
+
+  .home-shell .home-nav-item.selected,
+  .home-shell .home-nav-item.focused,
+  .home-shell .home-profile-pill.focused {
+    color: var(--text-primary, #fff);
+  }
+
+  .home-shell .home-main,
+  .home-shell:has(.home-sidebar[data-collapsible="true"]) .home-main,
+  .home-shell.has-collapsible-sidebar .home-main {
+    margin-left: 0;
+    padding-bottom: var(--compact-tabbar-total);
+  }
+
+  /* The modern sidebar is a pill that opens on Left from a remote; a touch
+     screen has no way to open it. Its panel becomes the same tab bar. */
+  .home-shell .modern-sidebar-shell,
+  .home-shell .modern-sidebar-shell.expanded:not(.opening):not(.collapsing) {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 20;
+    width: 100%;
+    height: var(--compact-tabbar-total);
+    pointer-events: auto;
+    contain: none;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .home-shell .modern-sidebar-pill {
+    display: none;
+  }
+
+  .home-shell .modern-sidebar-shell .modern-sidebar-panel,
+  .home-shell .modern-sidebar-shell.expanded .modern-sidebar-panel,
+  .home-shell .modern-sidebar-shell.opening .modern-sidebar-panel,
+  .home-shell .modern-sidebar-shell.collapsing .modern-sidebar-panel,
+  .home-shell .modern-sidebar-shell.blur-enabled .modern-sidebar-panel {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0 16px var(--compact-tabbar-inset);
+    border: none;
+    border-top: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    background: rgba(12, 12, 12, 0.94);
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition: none;
+    animation: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .home-shell .modern-sidebar-nav-list {
+    order: 1;
+    flex: 4 1 0;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 0;
+    transform: none;
+  }
+
+  .home-shell .modern-sidebar-nav-item,
+  .home-shell .modern-sidebar-profile {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 12px 0 8px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.64));
+    transform: none;
+  }
+
+  .home-shell .modern-sidebar-profile {
+    order: 2;
+  }
+
+  .home-shell .modern-sidebar-nav-item.selected,
+  .home-shell .modern-sidebar-nav-item.focused,
+  .home-shell .modern-sidebar-nav-item.selected.focused,
+  .home-shell .modern-sidebar-profile.focused {
+    border: none;
+    background: transparent;
+    color: var(--text-primary, #fff);
+    transform: none;
+  }
+
+  .home-shell .modern-sidebar-nav-icon-circle,
+  .home-shell .modern-sidebar-profile-avatar {
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    font-size: 22px;
+    transform: none;
+  }
+
+  .home-shell .modern-sidebar-nav-icon-circle {
+    background: transparent;
+  }
+
+  .home-shell .modern-sidebar-nav-icon {
+    width: 36px;
+    height: 36px;
+    transform: none;
+  }
+
+  .home-shell .modern-sidebar-profile-avatar {
+    padding: 0;
+  }
+
+  .home-shell .modern-sidebar-nav-label,
+  .home-shell .modern-sidebar-profile-name {
+    flex: 0 0 auto;
+    max-width: 100%;
+    opacity: 1;
+    font-size: 22px;
+    line-height: 28px;
+    letter-spacing: 0.2px;
+    text-align: center;
+    text-overflow: ellipsis;
+  }
+
+  .home-shell.has-modern-sidebar .home-main {
+    margin-left: 0;
+    padding-bottom: var(--compact-tabbar-total);
+  }
+
+  /* --- settings: section list, then one section ------------------------- */
+
+  /* Including the TV's variants for a collapsible or modern sidebar, which
+     are more specific. */
+  .settings-shell .settings-workspace,
+  .settings-shell:has(.home-sidebar[data-collapsible="true"]) .settings-workspace,
+  .settings-shell.has-collapsible-sidebar .settings-workspace,
+  .settings-shell.has-modern-sidebar .settings-workspace {
+    width: 100vw;
+    height: calc(var(--compact-vh) - var(--compact-tabbar-total));
+    margin: 0;
+    padding: 32px 32px 24px;
+    border: none;
+    border-radius: 0;
+    background: var(--bg-color);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The section list shows until a section is opened (applyFocus mirrors
+     the focus zone onto the screen as data-settings-zone). */
+  .settings-shell .settings-content-frame,
+  [data-settings-zone="content"] .settings-sidebar-frame,
+  [data-settings-zone="dialog"] .settings-sidebar-frame {
+    display: none;
+  }
+
+  [data-settings-zone="content"] .settings-shell .settings-content-frame,
+  [data-settings-zone="dialog"] .settings-shell .settings-content-frame {
+    display: block;
+  }
+
+  .settings-compact-back {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 8px;
+    min-height: 88px;
+    margin: -16px 0 8px -16px;
+    padding: 0 24px 0 8px;
+    border: none;
+    border-radius: 44px;
+    background: transparent;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+    font: inherit;
+    font-size: 30px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .settings-compact-back-icon {
+    width: 40px;
+    height: 40px;
+    transform: scaleX(-1);
+    fill: currentColor;
+  }
+
+  /* --- home (modern layout): rows only, no hero ------------------------ */
+
+  /* The hero shows the focused title, and a tap opens a title rather than
+     focusing it, so on a phone it would only ever show the first one.
+     Compact Home starts with the rows. */
+  .home-screen-shell.home-layout-modern {
+    --compact-edge: 32px;
+  }
+
+  .home-screen-shell.home-layout-modern .home-hero,
+  .home-screen-shell.home-layout-modern .home-modern-hero-media,
+  .home-screen-shell.home-layout-modern .home-modern-hero-copy {
+    display: none;
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-rows-viewport {
+    top: 0;
+    height: calc(100% - var(--compact-tabbar-total));
+  }
+
+  .home-screen-shell.home-layout-modern .home-modern-rows-scroll {
+    padding-top: calc(32px + env(safe-area-inset-top, 0px));
+  }
+
+  .home-screen-shell.home-layout-modern .home-row-head {
+    padding-left: var(--compact-edge);
+  }
+
+  .home-screen-shell.home-layout-modern .home-track {
+    margin-left: 0;
+    padding-left: var(--compact-edge);
+    padding-right: var(--compact-edge);
+    scroll-padding-left: var(--compact-edge);
+  }
+
+  /* --- app dialogs (title actions, confirmations): the TV sizes them as a
+     share of the width, a third for option menus, which leaves a phone a
+     sliver. nuvioDialog sets that share inline. */
+
+  .nuvio-dialog-backdrop {
+    padding: 0 32px;
+  }
+
+  .nuvio-dialog-panel {
+    width: 100%;
+    max-width: none !important;
+  }
+
+  /* --- player dialogs: fit the width -------------------------------------
+     The subtitle dialog's three rails (languages, tracks, style) need about
+     800px, more than a portrait canvas; the style rail ran off screen. Put
+     languages and tracks side by side and the style controls under them. */
+
+  .player-subtitle-modal,
+  .player-audio-modal {
+    left: 24px;
+    right: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+  }
+
+  .player-subtitle-modal {
+    height: min(80vh, calc(100vh - 160px));
+  }
+
+  /* On a TV these float, transparent, beside the picture; over a portrait
+     player the title and controls showed through them. */
+  .player-subtitle-modal,
+  .player-audio-modal {
+    padding: 24px;
+    border-radius: 32px;
+    background: rgba(18, 18, 18, 0.97);
+  }
+
+  .player-subtitle-overlay-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, auto);
+  }
+
+  .player-subtitle-overlay-grid .player-subtitle-style-rail {
+    grid-column: 1 / -1;
+    max-height: 40vh;
+  }
+
+  /* The audio dialog's track list and its controls (amplification, keep
+     between sessions) sit side by side on a TV; stack them. */
+  .player-audio-overlay-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .player-audio-track-list {
+    width: auto;
+  }
+
+  .player-sources-panel {
+    width: 100%;
+    border-radius: 0;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* --- detail: Play and the round buttons on one row, the text actions
+     (Play from Beginning, Remove from Continue Watching) under it ------- */
+
+  .series-detail-actions {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .series-detail-actions .series-primary-btn {
+    order: 0;
+    flex: 1 1 auto;
+  }
+
+  .series-detail-actions .series-circle-btn {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  .series-detail-actions .series-secondary-btn {
+    order: 2;
+    flex: 1 1 100%;
+    min-height: 88px;
+    font-size: 28px;
+  }
+
+  /* --- stream picker: title above, sources below ----------------------- */
+
+  .stream-route-shell .stream-route-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 24px;
+    padding: calc(136px + env(safe-area-inset-top, 0px)) 32px 32px;
+  }
+
+  .stream-route-shell .stream-route-left {
+    padding: 0;
+  }
+
+  .stream-route-shell .stream-route-left-inner {
+    width: 100%;
+  }
+
+  .stream-route-shell .stream-route-logo {
+    max-height: 120px;
+    margin-bottom: 12px;
+  }
+
+  /* --- cast: clear the Back button above the portrait ------------------ */
+
+  .cast-detail-shell .cast-detail-hero {
+    padding-top: 112px;
+  }
+
+  /* --- sign-in: one column, the card below the title -------------------- */
+
+  .qr-layout {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 40px;
+    overflow-y: auto;
+    padding: calc(136px + env(safe-area-inset-top, 0px)) 32px
+      calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .qr-layout .qr-left-panel {
+    justify-content: flex-start;
+  }
+
+  .qr-layout .qr-card {
+    width: 100%;
+    height: auto;
+  }
+
+  .qr-layout .qr-actions {
+    padding-top: 32px;
+  }
+
+  .qr-layout .qr-action-btn {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 96px;
+    padding: 16px 24px;
+    line-height: 1.2;
+  }
+
+  /* --- dialogs: the TV caps them at 43vw tall, a fifth of a portrait
+     canvas, and their rows then shrink into one another ----------------- */
+
+  .settings-dialog {
+    max-height: calc(
+      var(--compact-vh) - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
+    overflow-y: auto;
+  }
+
+  .settings-dialog > * {
+    flex-shrink: 0;
+  }
+
+  /* --- onboarding: choices stacked instead of side by side ------------ */
+
+  .experience-mode-options,
+  .experience-mode-options.is-layout {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    padding: 0 32px;
+    box-sizing: border-box;
+  }
+
+  /* --- profile editor: preview above the avatar picker ----------------- */
+
+  .profile-editor-panel {
+    width: calc(100vw - 32px);
+    max-height: calc(
+      var(--compact-vh) - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
+    padding: 32px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .profile-editor-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 32px;
+    min-height: 0;
+  }
+
+  .profile-editor-preview,
+  .profile-editor-picker-pane,
+  .profile-editor-avatar-pane {
+    width: 100%;
+  }
+
+  .profile-editor-divider {
+    display: none;
+  }
+
+  /* Four fixed-size avatars are wider than the panel; three fit. */
+  .profile-editor-avatar-grid {
+    max-height: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+  }
+
+  /* --- text sizes: secondary text a phone can read ----------------------
+     These are TV sizes for text read from the sofa beside larger text; at
+     half a CSS pixel per TV pixel they land between 7 and 11px. Hold them at
+     13-14px (26-28 canvas px). */
+
+  .qr-layout .qr-card-subtitle,
+  .qr-layout .qr-login-instruction,
+  .qr-layout .qr-status,
+  .qr-layout .qr-code-text,
+  .settings-text-dialog-message,
+  .settings-account-status-value,
+  .server-security-warning strong,
+  .auth-simple-card {
+    font-size: 28px;
+    line-height: 1.35;
+  }
+
+  .qr-layout .qr-manual-text,
+  .qr-layout .qr-expiry,
+  .qr-layout .qr-input-label,
+  .qr-layout .qr-terms,
+  .qr-layout .qr-terms-link,
+  .settings-account-status-label,
+  .server-security-warning,
+  .server-security-warning span,
+  .settings-row-subtitle,
+  .settings-group-subtitle,
+  .settings-account-description,
+  .settings-account-inline-note,
+  .settings-account-button-subtitle,
+  .settings-about-copy,
+  .experience-mode-card span,
+  .auth-simple-subtitle,
+  .search-result-date,
+  .search-results-subtitle {
+    font-size: 26px;
+    line-height: 1.35;
+  }
+
+  /* Value and label sit inline in one block and ran into each other once
+     the URL wrapped. */
+  .settings-account-status-value,
+  .settings-account-status-label {
+    display: block;
+  }
+}
