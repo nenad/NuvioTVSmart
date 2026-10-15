@@ -57,7 +57,7 @@ import { supportsMembershipFor } from "../../../core/tracking/trackingLibraryMem
 import { Environment } from "../../../platform/environment.js";
 
 import { Platform } from "../../../platform/index.js";
-import { isCompactLayout } from "../../theme/compactLayout.js";
+import { isCompactLayout, isTouchScreen } from "../../theme/compactLayout.js";
 
 import { getTvRuntimePerformanceProfile } from "../../../platform/tvRuntimePerformance.js";
 
@@ -348,6 +348,7 @@ export {
   Environment,
   Platform,
   isCompactLayout,
+  isTouchScreen,
   getTvRuntimePerformanceProfile,
   TMDB_API_KEY,
   TRAKT_API_URL,
