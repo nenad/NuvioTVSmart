@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { isCompactLayout } from "../../theme/compactLayout.js";
 import * as internals from "./discoverScreen.js";
 
 export function createDiscoverScreenMethods05() {
@@ -197,7 +198,10 @@ export function createDiscoverScreenMethods05() {
     render() {
       this.cancelScheduledRender();
       this.layoutPrefs = LayoutPreferences.get();
-      const showRootSidebar = this.isSidebarRootRoute();
+      // Compact layouts always get the bottom tab bar. TV layout only when
+      // Discover is a sidebar destination, not when it was opened from Search.
+      const showRootSidebar = isCompactLayout() || this.isSidebarRootRoute();
+      const showBrowserBack = !this.isSidebarRootRoute();
       const openPicker = this.openPicker || null;
       if (this.lastRenderedOpenPicker && this.lastRenderedOpenPicker !== openPicker) {
         this.startClosingPicker(this.lastRenderedOpenPicker);
@@ -221,7 +225,7 @@ export function createDiscoverScreenMethods05() {
 
       const loadedPosters = this.captureLoadedDiscoverPosters();
       this.container.innerHTML = `
-          <div class="home-shell search-screen-shell discover-shell${showRootSidebar ? " discover-root-route" : ""}">
+          <div class="home-shell search-screen-shell discover-shell${showRootSidebar ? " discover-has-tabbar" : ""}${this.isSidebarRootRoute() ? " discover-root-route" : ""}${showBrowserBack ? " discover-from-search" : ""}">
             ${
               showRootSidebar
                 ? renderRootSidebar({
