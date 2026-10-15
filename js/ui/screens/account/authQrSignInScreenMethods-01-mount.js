@@ -113,7 +113,7 @@ export function createAuthQrSignInScreenMethods01() {
               </div>
 
               <div class="qr-copy-block">
-                <h1 class="qr-title">${I18n.t("auth.qr.title")}</h1>
+                <h1 class="qr-title">${this.qrLabel("auth.qr.title")}</h1>
                 <p id="qr-description" class="qr-description">${this.getLeftDescription()}</p>
                 ${this.renderConnectedAccountIdentity()}
               </div>
@@ -186,7 +186,7 @@ export function createAuthQrSignInScreenMethods01() {
           <div id="qr-manual-text" class="qr-manual-text"></div>
           <div id="qr-code-text" class="qr-code-text"></div>
           <div id="qr-expiry" class="qr-expiry"></div>
-          <div id="qr-status" class="qr-status">${escapeHtml(I18n.t("auth.qr.waitingApproval"))}</div>
+          <div id="qr-status" class="qr-status">${escapeHtml(this.qrLabel("auth.qr.waitingApproval"))}</div>
         `;
     },
     renderConnectedAccountIdentity() {
@@ -278,8 +278,11 @@ export function createAuthQrSignInScreenMethods01() {
              </button>`
         : this.useEmailLogin
           ? ""
-          : `<button type="button" id="qr-refresh-btn" class="qr-action-btn qr-action-btn-primary focusable" data-action="refresh">
-                 ${escapeHtml(I18n.t("auth.qr.refresh"))}
+          : `<button type="button" id="qr-refresh-btn" class="qr-action-btn ${
+              // The sign-in link is the main action there.
+              this.opensSignInLink() ? "qr-action-btn-secondary" : "qr-action-btn-primary"
+            } focusable" data-action="refresh">
+                 ${escapeHtml(this.qrLabel("auth.qr.refresh"))}
                </button>`;
       const continueLabel = `<button type="button" id="qr-back-btn" class="qr-action-btn qr-action-btn-secondary focusable" data-action="back">
           ${escapeHtml(backLabel)}

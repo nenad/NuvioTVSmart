@@ -4,6 +4,13 @@ import * as internals from "./authQrSignInScreen.js";
 export function createAuthQrSignInScreenMethods03() {
   const { Router, LocalStore, ScreenUtils, AuthManager, I18n, Platform, GUEST_QR_BYPASS_KEY, focusNode } = internals;
 
+  // Wording for the sign-in link that replaces the QR code on touch screens.
+  const SIGN_IN_LINK_LABELS = {
+    "auth.qr.title": "auth.qr.linkTitle",
+    "auth.qr.refresh": "auth.qr.linkRefresh",
+    "auth.qr.waitingApproval": "auth.qr.linkWaitingApproval"
+  };
+
   return {
     toFriendlyEmailError(rawError) {
       const message = String(rawError?.message || rawError || "")
@@ -164,6 +171,9 @@ export function createAuthQrSignInScreenMethods03() {
       } catch (_) {
         return false;
       }
+    },
+    qrLabel(key) {
+      return I18n.t((this.opensSignInLink() && SIGN_IN_LINK_LABELS[key]) || key);
     },
     getLeftDescription() {
       if (this.isSignedIn) return I18n.t("auth.qr.leftDescriptionSignedIn");
