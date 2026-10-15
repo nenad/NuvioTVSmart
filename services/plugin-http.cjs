@@ -114,6 +114,47 @@ function isLoopbackRequest(request) {
   return isLoopbackAddress(socket && socket.remoteAddress);
 }
 
+// Plugins are third-party code. This service is their only egress boundary,
+// so destinations that reach the local network, the carrier-grade NAT range,
+// or the cluster must never be fetched. The check runs on every resolved
+// address (every connection attempt), which also covers redirect hops and
+// DNS rebinding.
+function isBlockedDestination(value) {
+  var address = String(value || "").trim().toLowerCase();
+  if (!address) return true;
+  address = address.split("%", 1)[0];
+  var ipVersion = 0;
+  try {
+    ipVersion = getNetModule().isIP(address);
+  } catch (_) {
+    return true;
+  }
+  if (ipVersion === 6) {
+    if (address === "::" || address === "::1" || address === "0:0:0:0:0:0:0:1") return true;
+    var mapped = address.replace(/^::ffff:/, "");
+    if (mapped !== address) return isBlockedDestination(mapped);
+    var firstHextet = parseInt(address.slice(0, 2), 16) || 0;
+    if ((firstHextet & 0xfe00) === 0xfc00) return true; // fc00::/7 unique local
+    if ((firstHextet & 0xffc0) === 0xfe80) return true; // fe80::/10 link local
+    return false;
+  }
+  if (ipVersion === 4) {
+    var parts = address.split(".");
+    if (parts.length !== 4) return true;
+    var first = parseInt(parts[0], 10);
+    var second = parseInt(parts[1], 10);
+    if (Number.isNaN(first) || Number.isNaN(second)) return true;
+    // 0.0.0.0/8, 10.0.0.0/8, 127.0.0.0/8, 224.0.0.0/4, 240.0.0.0/4
+    if (first === 0 || first === 10 || first === 127 || first >= 224) return true;
+    if (first === 100 && (second & 0xc0) === 64) return true; // 100.64.0.0/10 CGNAT
+    if (first === 169 && second === 254) return true; // 169.254.0.0/16 link local
+    if (first === 172 && (second & 0xf0) === 16) return true; // 172.16.0.0/12
+    if (first === 192 && second === 168) return true; // 192.168.0.0/16
+    return false;
+  }
+  return true;
+}
+
 function parseUrl(value) {
   var parsed;
   try {
@@ -473,13 +514,26 @@ function performFetch(payload, callback, redirects, trace, networkState) {
       finish(lookupError);
       return;
     }
-    var resolvedAddresses = (Array.isArray(addresses) ? addresses : [addresses])
+    var allAddresses = (Array.isArray(addresses) ? addresses : [addresses])
       .map(function (address) {
         return String(address || "");
       })
       .filter(function (address, index, list) {
         return address && list.indexOf(address) === index;
       });
+    var resolvedAddresses = allAddresses.filter(function (address) {
+      return !isBlockedDestination(address);
+    });
+    if (allAddresses.length && !resolvedAddresses.length) {
+      var blockedAddressError = new Error("Destination not allowed");
+      emitTrace(
+        trace,
+        "fetch destination blocked",
+        Object.assign({}, requestTrace, { error: traceError(blockedAddressError) })
+      );
+      finish(blockedAddressError);
+      return;
+    }
     resolvedAddresses = orderResolvedAddresses(networkState, parsed, resolvedAddresses);
     if (!resolvedAddresses.length) {
       var missingAddressError = new Error("DNS lookup returned no address");
