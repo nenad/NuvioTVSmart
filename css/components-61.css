@@ -551,6 +551,31 @@ html.layout-switching *::after {
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   }
 
+  /* --- detail: Play and the round buttons on one row, the text actions
+     (Play from Beginning, Remove from Continue Watching) under it ------- */
+
+  .series-detail-actions {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .series-detail-actions .series-primary-btn {
+    order: 0;
+    flex: 1 1 auto;
+  }
+
+  .series-detail-actions .series-circle-btn {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  .series-detail-actions .series-secondary-btn {
+    order: 2;
+    flex: 1 1 100%;
+    min-height: 88px;
+    font-size: 28px;
+  }
+
   /* --- stream picker: title above, sources below ----------------------- */
 
   .stream-route-shell .stream-route-content {
