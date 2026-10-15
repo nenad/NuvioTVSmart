@@ -145,14 +145,17 @@ export function createAuthQrSignInScreenMethods03() {
       if (this.isLeaving) return;
       this.isLeaving = true;
       this.updateActionButtons();
-      this.cleanup();
       if (this.onboardingMode) {
         // Android finishes the onboarding activity on hardware Back. Do not
         // silently turn Back into the explicit guest opt-in action.
+        this.cleanup();
         Platform.exitApp();
         return;
       }
-      Router.back({ skipConsume: true });
+      // Pop the stack directly: cleanup runs inside Router.back and the next
+      // screen mounts before this overlay is torn down, so Safari does not sit
+      // on an empty #account pane while waiting for popstate.
+      Router.back({ skipConsume: true, skipHistory: true });
     },
     getLeftDescription() {
       if (this.isSignedIn) return I18n.t("auth.qr.leftDescriptionSignedIn");
@@ -163,6 +166,16 @@ export function createAuthQrSignInScreenMethods03() {
       if (this.isSignedIn) return I18n.t("auth.qr.cardSubtitleSignedIn");
       if (this.useEmailLogin) return I18n.t("auth.email.instruction");
       return I18n.t("auth.qr.cardSubtitleSignedOut");
+    },
+    renderLoginInstruction() {
+      const instruction = this.isSignedIn
+        ? I18n.t("auth.qr.syncedData")
+        : this.useEmailLogin
+          ? I18n.t("auth.email.instruction")
+          : I18n.t("auth.qr.scanInstruction");
+      // Signed out, the card subtitle is this same string; say it once.
+      if (instruction === this.getCardSubtitle()) return "";
+      return `<p class="qr-login-instruction">${instruction}</p>`;
     },
     getBackButtonLabel() {
       if (this.onboardingMode && !this.isSignedIn) {

@@ -126,15 +126,7 @@ export function createAuthQrSignInScreenMethods01() {
                   <p id="qr-card-subtitle" class="qr-card-subtitle">${this.getCardSubtitle()}</p>
                 </header>
 
-                <p class="qr-login-instruction">
-                  ${
-                    this.isSignedIn
-                      ? I18n.t("auth.qr.syncedData")
-                      : this.useEmailLogin
-                        ? I18n.t("auth.email.instruction")
-                        : I18n.t("auth.qr.scanInstruction")
-                  }
-                </p>
+                ${this.renderLoginInstruction()}
                 ${this.renderLoginContent()}
                 ${!this.isSignedIn ? this.renderTermsAcknowledgement() : ""}
                 <div class="qr-actions">${this.renderActions()}</div>
