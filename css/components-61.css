@@ -33,7 +33,7 @@
 }
 
 [data-route="account"] .browser-back-button,
-[data-route="discover"] .browser-back-button,
+[data-route="discover"][data-discover-from-search="true"] .browser-back-button,
 [data-route="detail"] .browser-back-button,
 [data-route="stream"] .browser-back-button,
 [data-route="castDetail"] .browser-back-button,
@@ -90,6 +90,13 @@
     /* autoprefixer: off */
     -webkit-user-select: text;
     user-select: text;
+  }
+
+  /* Safari zooms focused fields below 16 CSS px; compact canvases halve that. */
+  input,
+  textarea,
+  select {
+    font-size: max(32px, 1em);
   }
 
   #playerUiRoot {

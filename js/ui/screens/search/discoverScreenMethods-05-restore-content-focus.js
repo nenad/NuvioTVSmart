@@ -268,6 +268,10 @@ export function createDiscoverScreenMethods05() {
       this.bindCardEvents();
       this.bindShellEvents();
       this.bindPointerEvents();
+      const root = globalThis.document?.documentElement;
+      if (root?.dataset) {
+        root.dataset.discoverFromSearch = showBrowserBack ? "true" : "false";
+      }
       this.scheduleDiscoverPosterHydration();
       if (this.pendingRestoreFocus) {
         const scrollMode = this.preserveViewportOnNextRender ? "none" : "center";
