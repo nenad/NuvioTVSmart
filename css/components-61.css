@@ -456,55 +456,28 @@ html.layout-switching *::after {
     fill: currentColor;
   }
 
-  /* --- home (modern layout): the hero scrolls away under the rows ------- */
+  /* --- home (modern layout): rows only, no hero ------------------------ */
 
+  /* The hero shows the focused title, and a tap opens a title rather than
+     focusing it, so on a phone it would only ever show the first one.
+     Compact Home starts with the rows. */
   .home-screen-shell.home-layout-modern {
     --compact-edge: 32px;
-    --compact-hero-height: 52vh;
   }
 
-  /* One scroller for the whole page. The first row starts below the hero,
-     and scrolling slides the rows up over it on a solid backdrop. */
+  .home-screen-shell.home-layout-modern .home-hero,
+  .home-screen-shell.home-layout-modern .home-modern-hero-media,
+  .home-screen-shell.home-layout-modern .home-modern-hero-copy {
+    display: none;
+  }
+
   .home-screen-shell.home-layout-modern .home-modern-rows-viewport {
     top: 0;
     height: calc(100% - var(--compact-tabbar-total));
   }
 
   .home-screen-shell.home-layout-modern .home-modern-rows-scroll {
-    padding-top: var(--compact-hero-height);
-  }
-
-  .home-screen-shell.home-layout-modern .home-modern-catalogs {
-    background: linear-gradient(to bottom, rgba(13, 13, 13, 0) 0, var(--bg-color) 160px);
-  }
-
-  .home-screen-shell.home-layout-modern .home-modern-hero-media {
-    left: 0;
-    width: 100%;
-    height: calc(var(--compact-hero-height) + 120px);
-  }
-
-  .home-screen-shell.home-layout-modern .home-modern-hero-copy {
-    top: auto;
-    right: var(--compact-edge);
-    bottom: calc(var(--compact-vh) - var(--compact-hero-height) + 24px);
-    left: var(--compact-edge);
-    width: auto;
-    max-width: none;
-    /* A fixed box: applyModernHeroDescriptionBounds fits the description
-       into whatever height the logo and meta leave. */
-    height: 420px;
-  }
-
-  /* The image now sits behind the copy, so darken its lower part. */
-  .home-screen-shell.home-layout-modern .home-modern-hero-media::after {
-    background: linear-gradient(
-      to bottom,
-      rgba(13, 13, 13, 0) 0,
-      rgba(13, 13, 13, 0) 30%,
-      rgba(13, 13, 13, 0.7) 62%,
-      var(--bg-color) 88%
-    );
+    padding-top: calc(32px + env(safe-area-inset-top, 0px));
   }
 
   .home-screen-shell.home-layout-modern .home-row-head {
