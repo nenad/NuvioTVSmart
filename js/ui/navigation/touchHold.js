@@ -1,5 +1,6 @@
 import { Platform } from "../../platform/index.js";
 import { FocusEngine } from "./focusEngine.js";
+import { Router } from "./routerState.js";
 
 // Holding OK on a remote opens the menus a TV app has instead of right-click:
 // "hold to manage profile", poster and episode options, continue-watching
@@ -9,7 +10,9 @@ import { FocusEngine } from "./focusEngine.js";
 // the control and send OK down, and send it up when the finger lifts. Short
 // taps are left to the click path.
 
-const HOLD_START_MS = 350;
+// Long enough to tell a hold from the start of a scroll. A screen's own hold
+// timer (650ms on Home) runs on top, so a menu opens just under a second in.
+const HOLD_START_MS = 250;
 const MOVE_TOLERANCE_PX = 12;
 const OK = { key: "Enter", keyCode: 13 };
 
@@ -55,6 +58,9 @@ export function installTouchHold() {
         }
         pending.pressed = true;
         FocusEngine.focusPointerTarget(pending.target);
+        // Home and Library track their focus themselves; without this they
+        // put it back on what they last focused and the OK lands there.
+        Router.getCurrentScreen()?.setFocusedNode?.(pending.target);
         sendOk("keydown");
       }, HOLD_START_MS);
     },
