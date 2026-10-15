@@ -119,6 +119,30 @@ html.layout-switching *::after {
   transition: none !important;
 }
 
+/* A mouse in a browser. Hover does not move focus here (it would reflow
+   Home's rows under the cursor), so mark what is under the cursor instead:
+   the same ring as focus, fainter. The Magic Remote moves focus itself. */
+@media (hover: hover) and (pointer: fine) {
+  html:not(.webos-pointer-remote) .screen .focusable {
+    cursor: pointer;
+  }
+
+  html:not(.webos-pointer-remote)
+    .home-screen-shell
+    .home-poster-card:hover:not(.focused)
+    .home-poster-frame {
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+  }
+
+  html:not(.webos-pointer-remote)
+    .screen
+    .focusable:hover:not(.focused):not(.home-poster-card):not(input):not(textarea) {
+    outline: 3px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 2px;
+  }
+}
+
 /* Compact layouts.
 
    Canvases narrower than the TV layout's smallest breakpoint: phones in
