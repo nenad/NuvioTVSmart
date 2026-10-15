@@ -132,6 +132,11 @@ export function createPlayerScreenMethods37() {
         if (Environment.isTizen() || Environment.isWebOS()) {
           return playbackEngine.endsWith("avplay") ? 60000 : 45000;
         }
+        if (PlayerController.currentPlaybackConverted) {
+          // The streaming server has to open the remote file and cut the
+          // first segments before anything plays: 10 s and more for 4K.
+          return 45000;
+        }
         return 18000;
       }
       if (Environment.isTizen()) {
