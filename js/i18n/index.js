@@ -60,6 +60,8 @@ const KEY_ALIASES = {
   "sidebar.settings": "nav_settings",
   "settings.account.signInWithQr": "account_signin_qr_title",
   "settings.account.signInWithQrSubtitle": "account_signin_qr_subtitle",
+  "settings.account.signInTouch": "account_signin_touch_title",
+  "settings.account.signInTouchSubtitle": "account_signin_touch_subtitle",
   "settings.account.signOut": "account_sign_out",
   "settings.account.syncNote": "account_sync_description",
   "settings.appearance.appFont": "appearance_font",

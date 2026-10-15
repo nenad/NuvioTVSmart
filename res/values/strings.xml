@@ -1746,6 +1746,8 @@
     <string name="account_sync_restart_note">Sync is not real-time across active devices. Restart this device after signing in or to pick up changes made elsewhere.</string>
     <string name="account_signin_qr_title">Sign In with QR</string>
     <string name="account_signin_qr_subtitle">Scan a QR code and complete email login on your phone</string>
+    <string name="account_signin_touch_title">Sign In</string>
+    <string name="account_signin_touch_subtitle">Open the sign-in page in your browser, approve, then return here</string>
     <string name="account_signed_in_label">Signed in</string>
     <string name="account_total_label">Total</string>
     <string name="account_loading_sync">Loading sync data\u2026</string>
