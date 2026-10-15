@@ -398,8 +398,6 @@ const KEY_ALIASES = {
   "auth.qr.linkInstruction": "auth_qr_link_instruction",
   "auth.qr.linkDescription": "auth_qr_link_description",
   "auth.qr.linkTitle": "auth_qr_link_title",
-  "auth.qr.linkRefresh": "auth_qr_link_refresh",
-  "auth.qr.linkWaitingApproval": "auth_qr_link_waiting_approval",
   "auth.qr.success": "qr_login_success",
   "auth.qr.syncedData": "auth_qr_synced_data",
   "auth.qr.title": "auth_qr_title",
