@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import * as internals from "./playerController.js";
+import { BrowserStreamConverter } from "../../platform/browser/browserStreamConverter.js";
 
 export function createPlayerControllerMethods18() {
   const { Platform, TizenPlaybackProxy, WebOsPlaybackProxy, logEngineFsDebug, logTizenAvPlayDebug, logWebOsPlaybackDebug } = internals;
@@ -84,6 +85,13 @@ export function createPlayerControllerMethods18() {
           return;
         }
       }
+      // A browser cannot play most of what addons serve; a configured
+      // streaming server repackages it as HLS.
+      let convertedUrl = "";
+      if (!forceEngine && BrowserStreamConverter.shouldConvert(requestedUrl, sourceType, requestHeaders)) {
+        convertedUrl = BrowserStreamConverter.toHlsUrl(requestedUrl, this.video);
+        sourceType = "application/vnd.apple.mpegurl";
+      }
       if (!forceEngine && this.isTizenHlsSource(url, sourceType)) {
         // Load hls.js before choosing the engine so getPlaybackEngineCandidates()
         // can distinguish a supported MSE path from a platform that needs the
@@ -100,6 +108,10 @@ export function createPlayerControllerMethods18() {
       }
 
       let playbackUrl = requestedUrl;
+      if (convertedUrl) {
+        playbackUrl = convertedUrl;
+        this.currentPlaybackUrl = playbackUrl;
+      }
       let tizenProxyUnavailable = false;
       let tizenAvPlayFallbackForProxyUnavailable = false;
       const canUseTizenPlaybackProxy =
