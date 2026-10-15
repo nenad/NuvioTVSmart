@@ -33,6 +33,7 @@
 }
 
 [data-route="account"] .browser-back-button,
+[data-route="discover"] .browser-back-button,
 [data-route="detail"] .browser-back-button,
 [data-route="stream"] .browser-back-button,
 [data-route="castDetail"] .browser-back-button,
@@ -778,5 +779,91 @@ html.layout-switching *::after {
   .settings-account-status-value,
   .settings-account-status-label {
     display: block;
+  }
+
+  /* --- discover: tab bar, grid, and padding -------------------------------- */
+
+  .discover-shell.discover-has-tabbar .discover-main {
+    margin-left: 0;
+    padding-bottom: var(--compact-tabbar-total);
+  }
+
+  .discover-shell .seeall-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .discover-shell .seeall-card {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  /* --- detail: on-screen Back must not cover the synopsis ----------------- */
+
+  [data-route="detail"] .series-detail-content,
+  [data-route="detail"] .movie-detail-content {
+    scroll-padding-top: calc(120px + env(safe-area-inset-top, 0px));
+  }
+
+  /* --- player: ">" reads as stray punctuation on a phone ------------------ */
+
+  #playerUiRoot .player-control-btn[data-action="more"] .player-control-label,
+  #playerUiRoot .player-control-btn[data-action="backFromMore"] .player-control-label {
+    font-size: 0;
+    line-height: 0;
+  }
+
+  #playerUiRoot .player-control-btn[data-action="more"] .player-control-label::before {
+    content: "⋮";
+    font-size: var(--player-control-icon, 44px);
+    line-height: 1;
+  }
+
+  #playerUiRoot .player-control-btn[data-action="backFromMore"] .player-control-label::before {
+    content: "‹";
+    font-size: var(--player-control-icon, 44px);
+    line-height: 1;
+  }
+
+  /* --- profile picker: short landscape screens ----------------------------- */
+
+  .profile-screen .profile-main-layer {
+    overflow-y: auto;
+    justify-content: flex-start;
+    gap: 24px;
+    padding-top: calc(48px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .profile-screen .profile-title {
+    margin: 0;
+  }
+
+  .profile-screen .profile-subtitle {
+    margin: 0;
+  }
+}
+
+/* Touch phones in landscape use the TV rail; Safari's toolbar still eats
+   height from 100vh, so clip Settings and the profile at the bottom. */
+@media (pointer: coarse) and (min-width: 1100px) {
+  :root {
+    --touch-visible-vh: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    :root {
+      --touch-visible-vh: 100dvh;
+    }
+  }
+
+  .home-shell .home-sidebar.root-sidebar-legacy,
+  .home-shell .modern-sidebar-shell {
+    max-height: var(--touch-visible-vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .settings-shell .settings-workspace {
+    max-height: var(--touch-visible-vh);
   }
 }
