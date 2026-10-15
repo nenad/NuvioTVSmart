@@ -95,11 +95,11 @@ export function installTouchHold() {
   document.addEventListener("touchcancel", reset, { capture: true, passive: true });
 
   // A held finger otherwise opens the browser's own menus: save image, copy
-  // link, the iOS callout.
+  // link, the iOS callout. Text fields keep theirs (paste).
   document.addEventListener(
     "contextmenu",
     (event) => {
-      if (event.target?.closest?.(".screen")) {
+      if (!event.target?.closest?.("input, textarea")) {
         event.preventDefault();
       }
     },
