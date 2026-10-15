@@ -5,6 +5,16 @@ export const COMPACT_LAYOUT_QUERY = "(max-width: 1099px)";
 
 const SWITCHING_CLASS = "layout-switching";
 
+// A touch screen as the primary pointer: phones and tablets, in either
+// orientation. TVs (remote, Magic Remote) and desktops (mouse) are not.
+export function isTouchScreen() {
+  try {
+    return Boolean(globalThis.matchMedia?.("(pointer: coarse)")?.matches);
+  } catch (_) {
+    return false;
+  }
+}
+
 export function isCompactLayout() {
   try {
     return Boolean(globalThis.matchMedia?.(COMPACT_LAYOUT_QUERY)?.matches);

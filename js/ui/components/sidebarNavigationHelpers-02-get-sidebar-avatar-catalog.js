@@ -10,6 +10,8 @@ import { MemberAccessRepository } from "../../data/remote/supabase/memberAccessR
 
 import { I18n } from "../../i18n/index.js";
 
+import { isTouchScreen } from "../theme/compactLayout.js";
+
 import { getTvRuntimePerformanceProfile } from "../../platform/tvRuntimePerformance.js";
 
 import {
@@ -94,7 +96,9 @@ export function renderLegacySidebar({ selectedRoute = "home", profile = null, la
   const selectedItem = getSelectedItem(selectedRoute);
   const profileState = profile || {};
   const showProfileSelector = Boolean(profileState.showProfileSelector && profileState.activeProfileName);
-  const collapsible = Boolean(layout?.collapseSidebar);
+  // A collapsed sidebar opens when the remote presses Left; a touch screen
+  // has no way to open it, so it keeps the icon rail there.
+  const collapsible = Boolean(layout?.collapseSidebar) && !isTouchScreen();
   const performanceConstrained = getTvRuntimePerformanceProfile().isPerformanceConstrained;
 
   return `
