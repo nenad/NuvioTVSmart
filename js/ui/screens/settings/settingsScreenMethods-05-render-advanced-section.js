@@ -28,6 +28,8 @@ export function createSettingsScreenMethods05() {
     escapeHtml,
     labelForFont,
     labelForLanguage,
+    useUnifiedSettingsLayout,
+    Platform,
     settingsScrollIndicatorMarkup
   } = internals;
 
@@ -339,19 +341,37 @@ export function createSettingsScreenMethods05() {
         ThemeStore.set({ amoledSurfacesMode: !ThemeStore.get().amoledSurfacesMode });
         ThemeManager.apply({ enforceAccess: true, access: model?.memberAccess });
       });
-      this.actionMap.set("appearance:settingsUiStyle", () => {
-        const options = ["CLASSIC", "HORIZON", "ZEN"].map((id) => ({
-          id,
-          labelKey: `settings_style_${id.toLowerCase()}`
-        }));
-        this.openOptionDialog({
-          title: t("appearance_settings_style", {}, "Settings style"),
-          options,
-          selectedId: model.theme.settingsUiStyle || "CLASSIC",
-          returnFocusKey: "appearance:settingsUiStyle",
-          onSelect: (option) => ThemeStore.set({ settingsUiStyle: option.id })
+      if (!useUnifiedSettingsLayout()) {
+        this.actionMap.set("appearance:settingsUiStyle", () => {
+          const options = ["CLASSIC", "HORIZON", "ZEN"].map((id) => ({
+            id,
+            labelKey: `settings_style_${id.toLowerCase()}`
+          }));
+          this.openOptionDialog({
+            title: t("appearance_settings_style", {}, "Settings style"),
+            options,
+            selectedId: model.theme.settingsUiStyle || "CLASSIC",
+            returnFocusKey: "appearance:settingsUiStyle",
+            onSelect: (option) => ThemeStore.set({ settingsUiStyle: option.id })
+          });
         });
-      });
+      }
+
+      const applyLanguage = async (languageId) => {
+        ThemeStore.set({ language: languageId });
+        await I18n.init();
+        ThemeManager.apply({ enforceAccess: true, access: model?.memberAccess });
+        await this.render({ refreshModel: false });
+      };
+      const applyFont = (fontId) => {
+        ThemeStore.set({ fontFamily: fontId });
+        ThemeManager.apply({ enforceAccess: true, access: model?.memberAccess });
+      };
+
+      if (Platform.isBrowser()) {
+        this.selectChangeHandlers.set("appearance:language", async (value) => applyLanguage(value));
+        this.selectChangeHandlers.set("appearance:font", (value) => applyFont(value));
+      }
 
       return `
           ${this.renderSectionHeader(SECTION_META.find((item) => item.id === "appearance"))}
@@ -393,27 +413,33 @@ export function createSettingsScreenMethods05() {
               <div class="settings-group-subtitle">${escapeHtml(t("appearance_font_and_language_subtitle", {}, "Choose the typeface and locale used throughout the app"))}</div>
             </div>
             <div class="settings-stack">
-              ${this.renderActionRow({
-                focusKey: "appearance:settingsUiStyle",
-                title: t("appearance_settings_style", {}, "Settings style"),
-                subtitle: t("appearance_settings_style_subtitle", {}, "Choose the layout used by Settings"),
-                value: t(
-                  `settings_style_${String(model.theme.settingsUiStyle || "CLASSIC").toLowerCase()}`,
-                  {},
-                  String(model.theme.settingsUiStyle || "CLASSIC")
-                )
-              })}
-              ${this.renderActionRow({
+              ${
+                useUnifiedSettingsLayout()
+                  ? ""
+                  : this.renderActionRow({
+                      focusKey: "appearance:settingsUiStyle",
+                      title: t("appearance_settings_style", {}, "Settings style"),
+                      subtitle: t("appearance_settings_style_subtitle", {}, "Choose the layout used by Settings"),
+                      value: t(
+                        `settings_style_${String(model.theme.settingsUiStyle || "CLASSIC").toLowerCase()}`,
+                        {},
+                        String(model.theme.settingsUiStyle || "CLASSIC")
+                      )
+                    })
+              }
+              ${this.renderNativeSelectRow({
                 focusKey: "appearance:font",
                 title: t("appearance_font", {}, "App Font"),
                 subtitle: t("appearance_font_subtitle", {}, "Choose your preferred font"),
-                value: labelForFont(model.theme.fontFamily)
+                options: FONT_OPTIONS,
+                selectedId: model.theme.fontFamily
               })}
-              ${this.renderActionRow({
+              ${this.renderNativeSelectRow({
                 focusKey: "appearance:language",
                 title: t("appearance_language", {}, "App Language"),
                 subtitle: t("appearance_language_subtitle", {}, "Override system language"),
-                value: labelForLanguage(model.theme.language)
+                options: LANGUAGE_OPTIONS,
+                selectedId: model.theme.language
               })}
             </div>
           </div>

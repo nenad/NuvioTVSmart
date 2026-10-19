@@ -341,7 +341,9 @@ export function scrollSettingsContentItem(node) {
     scrollSettingsNodeIntoContainer(node, horizontalContainer, "x");
   }
 
-  const verticalContainer = node.closest?.(".settings-content, .settings-group-card-fill, .settings-trakt-scroll-area, .supporters-list");
+  const verticalContainer = node.closest?.(
+    ".settings-unified-scroll, .settings-content, .settings-group-card-fill, .settings-trakt-scroll-area, .supporters-list"
+  );
   if (verticalContainer) {
     scrollSettingsNodeIntoContainer(node, verticalContainer, "y");
     return;

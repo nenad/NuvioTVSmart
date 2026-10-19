@@ -47,7 +47,8 @@ export function createSettingsScreenMethods01() {
     readSettingsUiState,
     isAppearanceThemeFocusKey,
     t,
-    escapeAttribute
+    escapeAttribute,
+    useUnifiedSettingsLayout
   } = internals;
 
   return {
@@ -95,13 +96,18 @@ export function createSettingsScreenMethods01() {
         this.handleClickBound = this.handleClickEvent.bind(this);
         this.container.addEventListener("click", this.handleClickBound);
       }
+      if (!this.handleChangeBound) {
+        this.handleChangeBound = this.handleChangeEvent.bind(this);
+        this.container.addEventListener("change", this.handleChangeBound);
+      }
+      this.selectChangeHandlers = this.selectChangeHandlers || new Map();
       this.settingsRouteEnterPending = true;
       const persistedUiState = readSettingsUiState();
       this.restoreRailScrollTop = persistedUiState.railScrollTop;
       this.railScrollTop = persistedUiState.railScrollTop;
       this.suppressNextRailFocusScroll = Boolean(navigationContext?.isBackNavigation);
       this.activeSection = persistedUiState.activeSection || this.activeSection || null;
-      this.focusZone = "nav";
+      this.focusZone = useUnifiedSettingsLayout() ? "content" : "nav";
       this.sidebarFocusIndex = Number.isFinite(this.sidebarFocusIndex) ? this.sidebarFocusIndex : 0;
       this.navIndex = Number.isFinite(persistedUiState.navIndex)
         ? persistedUiState.navIndex
@@ -337,6 +343,14 @@ export function createSettingsScreenMethods01() {
     },
     renderSectionHeader(section) {
       const copy = translateSectionCopy(section);
+      if (useUnifiedSettingsLayout() && this.integrationView === "hub") {
+        return `
+            <header class="settings-unified-group-header" id="settings-group-${escapeHtml(section.id)}">
+              <h2 class="settings-unified-group-title">${escapeHtml(copy.label)}</h2>
+              ${copy.subtitle ? `<p class="settings-unified-group-subtitle">${escapeHtml(copy.subtitle)}</p>` : ""}
+            </header>
+          `;
+      }
       return `
           <header class="settings-content-header">
             <button type="button" class="settings-compact-back" aria-label="${escapeAttribute(t("sidebar.settings"))}">

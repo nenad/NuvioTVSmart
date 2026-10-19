@@ -286,6 +286,12 @@ export {
 } from "./settingsScreenHelpers-08-update-settings-scroll-indicators.js";
 
 export {
+  useUnifiedSettingsLayout,
+  getUnifiedMainSections,
+  getUnifiedExpertSections
+} from "./settingsScreenHelpers-11-unified-layout.js";
+
+export {
   updateSettingsMarqueeTargets,
   scrollSettingsRailItem,
   animateSettingsRailScroll,

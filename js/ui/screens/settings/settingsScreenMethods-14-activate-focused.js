@@ -12,7 +12,8 @@ export function createSettingsScreenMethods14() {
     isRootSidebarNode,
     clamp,
     isSettingsActivateEvent,
-    isCompactLayout
+    isCompactLayout,
+    useUnifiedSettingsLayout
   } = internals;
 
   return {
@@ -275,17 +276,20 @@ export function createSettingsScreenMethods14() {
         }
 
         if (this.focusZone === "content") {
+          const unified = useUnifiedSettingsLayout() && this.integrationView === "hub";
           if (code === 38 && String(this.model?.theme?.settingsUiStyle || "CLASSIC") === "HORIZON") {
             if (!this.moveContent("up")) {
-              this.syncNavFocusToActive();
-              this.focusZone = "nav";
-              this.applyFocus();
+              if (!unified) {
+                this.syncNavFocusToActive();
+                this.focusZone = "nav";
+                this.applyFocus();
+              }
             }
             return;
           }
           if (code === 37) {
             const moved = this.moveContent("left");
-            if (!moved) {
+            if (!moved && !unified) {
               this.syncNavFocusToActive();
               this.focusZone = "nav";
               this.applyFocus();
@@ -343,8 +347,17 @@ export function createSettingsScreenMethods14() {
       }
       // Compact layouts show one pane at a time, so Back from a section
       // returns to the section list rather than to the navigation.
-      if (this.focusZone === "content" && isCompactLayout()) {
+      if (
+        this.focusZone === "content" &&
+        isCompactLayout() &&
+        !(useUnifiedSettingsLayout() && this.integrationView === "hub")
+      ) {
         this.returnToSectionList();
+        return true;
+      }
+      if (useUnifiedSettingsLayout() && this.integrationView !== "hub") {
+        this.integrationView = "hub";
+        void this.render({ refreshModel: false });
         return true;
       }
       // The browser has already moved back in its history. Opening the

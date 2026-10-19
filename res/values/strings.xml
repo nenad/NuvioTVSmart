@@ -2842,6 +2842,8 @@
     <string name="unsupported_device_unavailable">Unavailable</string>
     <string name="appearance_settings_style">Settings Style</string>
     <string name="appearance_settings_style_subtitle">Choose how the settings screens are presented</string>
+    <string name="settings_unified_expert_heading">Advanced</string>
+    <string name="settings_unified_expert_subtitle">Add-ons, stream rules, plugins, and other options you rarely change.</string>
     <string name="settings_style_classic">Default</string>
     <string name="settings_style_horizon">Top Bar</string>
     <string name="settings_style_zen">Minimal</string>

@@ -470,6 +470,37 @@ html.layout-switching *::after {
     display: block;
   }
 
+  .settings-shell.settings-shell--unified .settings-sidebar-frame {
+    display: none;
+  }
+
+  .settings-shell.settings-shell--unified .settings-content-frame {
+    display: block;
+  }
+
+  .settings-shell.settings-shell--unified .settings-workspace {
+    padding: 24px var(--compact-edge, 32px) 16px;
+  }
+
+  .settings-shell.settings-shell--unified .settings-unified-page-title {
+    font-size: 34px;
+  }
+
+  .settings-shell.settings-shell--unified .settings-unified-group-title {
+    font-size: 28px;
+  }
+
+  .settings-shell.settings-shell--unified .settings-native-select-row {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .settings-shell.settings-shell--unified .settings-native-select {
+    width: 100%;
+    min-width: 0;
+  }
+
   .settings-compact-back {
     display: inline-flex;
     align-self: flex-start;

@@ -322,10 +322,12 @@ export function captureSettingsScrollState(contentNode) {
     return null;
   }
 
+  const unifiedScroll = contentNode.querySelector(".settings-unified-scroll");
   const fillScrollers = Array.from(contentNode.querySelectorAll(".settings-group-card-fill, .settings-trakt-scroll-area"));
   const horizontalScrollers = Array.from(contentNode.querySelectorAll(".settings-theme-row"));
   return {
-    contentScrollTop: Number(contentNode.scrollTop || 0),
+    contentScrollTop: Number((unifiedScroll || contentNode).scrollTop || 0),
+    unifiedScroll: Boolean(unifiedScroll),
     fillScrollTops: fillScrollers.map((node) => Number(node.scrollTop || 0)),
     horizontalScrollLefts: horizontalScrollers.map((node) => Number(node.scrollLeft || 0))
   };
@@ -336,7 +338,9 @@ export function restoreSettingsScrollState(contentNode, scrollState) {
     return;
   }
 
-  contentNode.scrollTop = Number(scrollState.contentScrollTop || 0);
+  const unifiedScroll = contentNode.querySelector(".settings-unified-scroll");
+  const scrollTarget = scrollState.unifiedScroll && unifiedScroll ? unifiedScroll : contentNode;
+  scrollTarget.scrollTop = Number(scrollState.contentScrollTop || 0);
   Array.from(contentNode.querySelectorAll(".settings-group-card-fill, .settings-trakt-scroll-area")).forEach((node, index) => {
     node.scrollTop = Number(scrollState.fillScrollTops?.[index] || 0);
   });
