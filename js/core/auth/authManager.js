@@ -451,13 +451,16 @@ class AuthManagerClass {
   // ------------------------------------
 
   async startTvLoginSession(deviceNonce, deviceName, redirectBaseUrl) {
+    const key = publishableKey();
     const request = (includeDeviceName) =>
       fetchSupabaseAuth("/rest/v1/rpc/start_tv_login_session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: publishableKey(),
-          Authorization: `Bearer ${SessionStore.accessToken || publishableKey()}`
+          apikey: key,
+          // Device login runs before a session exists; a stale access token from another
+          // backend must not be sent as Authorization (Kong returns PGRST301).
+          Authorization: `Bearer ${key}`
         },
         body: JSON.stringify({
           p_device_nonce: deviceNonce,
@@ -504,7 +507,7 @@ class AuthManagerClass {
       headers: {
         "Content-Type": "application/json",
         apikey: key,
-        Authorization: `Bearer ${SessionStore.accessToken || key}`
+        Authorization: `Bearer ${key}`
       },
       body: JSON.stringify({
         p_device_nonce: deviceNonce,
