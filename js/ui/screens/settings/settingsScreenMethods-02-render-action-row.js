@@ -13,7 +13,9 @@ export function createSettingsScreenMethods02() {
     iconSvg,
     translateOptionLabel,
     subtitleLanguageOptionCode,
-    addonKindsLabel
+    addonKindsLabel,
+    Platform,
+    escapeAttribute
   } = internals;
 
   return {
@@ -52,6 +54,58 @@ export function createSettingsScreenMethods02() {
             </span>
             ${tailContent ? `<span class="settings-row-tail">${tailContent}</span>` : ""}
           </button>
+        `;
+    },
+    renderNativeSelectRow({
+      focusKey,
+      title,
+      subtitle = "",
+      options = [],
+      selectedId = "",
+      disabled = false,
+      planned = false
+    }) {
+      const inert = disabled || planned;
+      const selectedValue = String(selectedId ?? "");
+      const selectedOption = options.find((option) => String(option.id) === selectedValue);
+      const valueLabel = selectedOption ? translateOptionLabel(selectedOption) : selectedValue;
+      if (!Platform.isBrowser() || inert) {
+        return this.renderActionRow({
+          focusKey,
+          title,
+          subtitle,
+          value: valueLabel,
+          disabled,
+          planned
+        });
+      }
+      const optionMarkup = options
+        .map((option) => {
+          const id = String(option.id);
+          return `<option value="${escapeAttribute(id)}"${id === selectedValue ? " selected" : ""}>${escapeHtml(
+            translateOptionLabel(option)
+          )}</option>`;
+        })
+        .join("");
+      return `
+          <div class="settings-native-select-row${inert ? " is-disabled" : ""}${planned ? " is-planned" : ""}">
+            <span class="settings-row-copy">
+              <span class="settings-row-title">${escapeHtml(title)}</span>
+              ${subtitle ? `<span class="settings-row-subtitle">${escapeHtml(subtitle)}</span>` : ""}
+            </span>
+            <span class="settings-native-select-wrap">
+              ${planned ? `<span class="settings-row-badge">${escapeHtml(t("common.soon"))}</span>` : ""}
+              <select
+                class="settings-native-select settings-content-focusable focusable"
+                data-zone="content"
+                data-focus-key="${escapeHtml(focusKey)}"
+                data-native-select="${escapeHtml(focusKey)}"
+                aria-label="${escapeAttribute(title)}"
+                ${inert ? "disabled" : ""}>
+                ${optionMarkup}
+              </select>
+            </span>
+          </div>
         `;
     },
     renderToggleRow({ focusKey, title, subtitle = "", checked = false, disabled = false, planned = false }) {

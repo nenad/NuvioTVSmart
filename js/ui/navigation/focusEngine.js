@@ -65,10 +65,22 @@ export const FocusEngine = {
       document.addEventListener("click", this.boundHandlePointerClick, true);
       document.documentElement?.classList?.add("webos-pointer-remote");
       document.body?.classList?.add("webos-pointer-remote");
+    } else if (Platform.isBrowser()) {
+      // Mouse and touch users expect a click or tap to act on what it lands
+      // on, so browsers get pointer activation. Focus does not follow hover
+      // here: that is Magic Remote behaviour, and with a mouse or a tap it
+      // reflows rows under the pointer before the click arrives.
+      document.addEventListener("click", this.boundHandlePointerClick, true);
     }
   },
 
-  handleBack(event, normalizedEvent = buildNormalizedEvent(event)) {
+  isPointerClickEnabled() {
+    return Platform.isWebOS() || Platform.isBrowser();
+  },
+
+  // source says where a Back came from when it was not a key: "button" for
+  // the browser's on-screen Back. Screens may treat those differently.
+  handleBack(event, normalizedEvent = buildNormalizedEvent(event), { source = "" } = {}) {
     const now = Date.now();
     const elapsedSinceHandled = now - Number(this.lastBackHandledAt || 0);
     if (normalizedEvent.repeat || elapsedSinceHandled < BACK_DEBOUNCE_MS) {
@@ -89,7 +101,7 @@ export const FocusEngine = {
     }
 
     const currentScreen = Router.getCurrentScreen();
-    const consumeResult = currentScreen?.consumeBackRequest?.();
+    const consumeResult = currentScreen?.consumeBackRequest?.({ source });
     if (consumeResult) {
       if (consumeResult === "history") {
         return;
@@ -299,6 +311,20 @@ export const FocusEngine = {
     const currentScreen = Router.getCurrentScreen();
     currentScreen?.onPointerMove?.(event);
     const target = this.getPointerFocusable(event);
+    const activeElement = document.activeElement;
+    // Hover must not end an editing session while the Magic Remote travels
+    // toward the system keyboard. Explicit clicks and D-pad navigation still
+    // move focus through their existing handlers.
+    if (
+      activeElement !== target &&
+      activeElement?.matches?.(
+        "input:not([type]), input[type='text'], input[type='search'], input[type='email'], input[type='password'], input[type='url'], input[type='tel'], input[type='number'], textarea"
+      ) &&
+      !activeElement.disabled &&
+      !activeElement.readOnly
+    ) {
+      return;
+    }
     if (!target || target === this.lastPointerFocusTarget) {
       return;
     }
@@ -309,7 +335,7 @@ export const FocusEngine = {
   },
 
   handlePointerClick(event) {
-    if (!Platform.isWebOS()) {
+    if (!this.isPointerClickEnabled()) {
       return;
     }
     const target = this.getPointerFocusable(event);

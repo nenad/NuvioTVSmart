@@ -1,7 +1,7 @@
 import * as internals from "./homeScreenContext.js";
 
 export function createHomeScreenMethods12() {
-  const { MODERN_HOME_CONSTANTS, firstNonEmpty, isCollectionFolderItem, normalizeCollectionFolderItem } = internals;
+  const { MODERN_HOME_CONSTANTS, firstNonEmpty, isCollectionFolderItem, normalizeCollectionFolderItem, isCompactLayout } = internals;
 
   return {
     syncCollectionHeroMedia(hero = null) {
@@ -307,7 +307,11 @@ export function createHomeScreenMethods12() {
     },
     getFocusedPosterFlowConfig(prefs = this.layoutPrefs || {}) {
       const useLandscapePosters = Boolean(prefs.modernLandscapePostersEnabled);
-      const expandSettingEnabled = Boolean(prefs.focusedPosterBackdropExpandEnabled);
+      // Expanding widens the focused card and reflows its row. On a compact
+      // screen there is no remote moving focus, only taps and scrolling, and
+      // scrolling moves focus to whatever is visible, so rows would jump
+      // under the finger.
+      const expandSettingEnabled = Boolean(prefs.focusedPosterBackdropExpandEnabled) && !isCompactLayout();
       const requestedTrailerTarget =
         String(prefs.focusedPosterBackdropTrailerPlaybackTarget || "hero_media").toLowerCase() === "expanded_card"
           ? "expanded_card"

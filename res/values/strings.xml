@@ -149,6 +149,7 @@
     <string name="cw_action_go_to_details">Go to details</string>
     <string name="cw_action_start_from_beginning">Start from beginning</string>
     <string name="cw_action_remove">Remove</string>
+    <string name="detail_remove_from_continue_watching">Remove from Continue Watching</string>
     <string name="cw_dialog_subtitle">Choose what you want to do with this item.</string>
     <string name="home_poster_dialog_subtitle">Title actions</string>
     <string name="catalog_from_addon">from %1$s</string>
@@ -1745,6 +1746,8 @@
     <string name="account_sync_restart_note">Sync is not real-time across active devices. Restart this device after signing in or to pick up changes made elsewhere.</string>
     <string name="account_signin_qr_title">Sign In with QR</string>
     <string name="account_signin_qr_subtitle">Scan a QR code and complete email login on your phone</string>
+    <string name="account_signin_touch_title">Sign In</string>
+    <string name="account_signin_touch_subtitle">Open the sign-in page in your browser, approve, then return here</string>
     <string name="account_signed_in_label">Signed in</string>
     <string name="account_total_label">Total</string>
     <string name="account_loading_sync">Loading sync data\u2026</string>
@@ -1826,6 +1829,10 @@
     <string name="auth_qr_expires">Expires in %1$s</string>
     <string name="auth_qr_phone_hint">Use your phone to sign in with email/password. TV stays QR-only for faster login.</string>
     <string name="auth_qr_scan_instruction">Scan QR, approve in browser, then return here.</string>
+    <string name="auth_qr_open_sign_in_page">Open sign-in page</string>
+    <string name="auth_qr_link_instruction">Open the sign-in page, approve, then return here.</string>
+    <string name="auth_qr_link_description">Sign in with email and password in your browser.</string>
+    <string name="auth_qr_link_title">Sign In</string>
     <string name="auth_qr_code_display">Code: %1$s</string>
     <string name="auth_qr_refresh">Refresh QR</string>
     <string name="auth_qr_continue_without_account">Continue without account</string>
@@ -2835,6 +2842,8 @@
     <string name="unsupported_device_unavailable">Unavailable</string>
     <string name="appearance_settings_style">Settings Style</string>
     <string name="appearance_settings_style_subtitle">Choose how the settings screens are presented</string>
+    <string name="settings_unified_expert_heading">Advanced</string>
+    <string name="settings_unified_expert_subtitle">Add-ons, stream rules, plugins, and other options you rarely change.</string>
     <string name="settings_style_classic">Default</string>
     <string name="settings_style_horizon">Top Bar</string>
     <string name="settings_style_zen">Minimal</string>
@@ -3004,4 +3013,11 @@
     <string name="auth_qr_manual_instruction">Or go to %1$s and enter</string>
     <string name="unsupported_device_warning">You can try to start Nuvio TV anyway, but the app may not work correctly on this TV. This configuration is not officially supported.</string>
     <string name="unsupported_device_try_anyway">Try anyway</string>
+    <string name="player_audio_dts_conversion_warning">DTS audio may not work on this TV because automatic conversion is unavailable for this track.</string>
+    <string name="player_audio_conversion_warning">Audio may not work on this TV because automatic conversion is unavailable for this track.</string>
+
+    <string name="mdblist_show_on_hero_title">Use Ratings on Hero</string>
+    <string name="mdblist_show_on_hero_subtitle">Show MDBList ratings on hero carousel (modern and classic/grid)</string>
+    <string name="mdblist_rating_order_title">Rating Order</string>
+    <string name="mdblist_rating_order_subtitle">First 3 enabled and available ratings are shown on the modern hero. Use arrows to reorder.</string>
 </resources>

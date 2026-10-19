@@ -105,7 +105,7 @@ export function createServerConfiguration({
     ? `${normalizedBackendUrl}/tv-login`
     : normalizeUrl(tvLoginWebBaseUrl);
   const normalizedDeviceLoginWebBaseUrl = isCustom
-    ? `${normalizedBackendUrl}/link`
+    ? normalizedTvLoginWebBaseUrl
     : normalizeUrl(deviceLoginWebBaseUrl || tvLoginWebBaseUrl);
 
   return Object.freeze({

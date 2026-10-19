@@ -455,3 +455,143 @@
 .trakt-route-shell .settings-tracking-panel .settings-trakt-card-title {
   margin: 0;
 }
+
+/* Unified settings: one scroll, no circular nav rail */
+.settings-shell.settings-shell--unified .settings-sidebar-frame {
+  display: none;
+}
+
+.settings-shell.settings-shell--unified .settings-workspace {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: clamp(24px, 3vw, 40px);
+  border-radius: 20px;
+}
+
+.settings-shell.settings-shell--unified:has(.modern-sidebar-shell) .settings-workspace,
+.settings-shell.settings-shell--unified.has-modern-sidebar .settings-workspace {
+  width: calc(100vw - 128px);
+}
+
+.settings-shell.settings-shell--unified .settings-content {
+  overflow: hidden;
+  gap: 0;
+  padding-right: 0;
+}
+
+.settings-unified-page-header {
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.settings-unified-page-title {
+  margin: 0;
+  font-size: clamp(32px, 3.2vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.settings-unified-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 4px 48px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.settings-unified-section + .settings-unified-section {
+  margin-top: 40px;
+}
+
+.settings-unified-group-header {
+  margin: 0 0 16px;
+  padding: 0 4px;
+}
+
+.settings-unified-group-title {
+  margin: 0;
+  font-size: clamp(26px, 2.4vw, 34px);
+  font-weight: 600;
+}
+
+.settings-unified-group-subtitle {
+  margin: 8px 0 0;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+  font-size: clamp(22px, 1.8vw, 28px);
+  line-height: 1.35;
+}
+
+.settings-unified-expert-divider {
+  margin: 48px 0 24px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.settings-unified-expert-heading {
+  margin: 0;
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 600;
+}
+
+.settings-unified-expert-copy {
+  margin: 10px 0 0;
+  max-width: 52rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+  font-size: clamp(22px, 1.8vw, 28px);
+  line-height: 1.4;
+}
+
+.settings-shell.settings-shell--unified .settings-unified-scroll .settings-group-card-fill {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
+
+.settings-shell.settings-shell--unified .settings-nav-item,
+.settings-shell.settings-shell--unified .settings-rail-item {
+  border-radius: 12px;
+}
+
+.settings-native-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 88px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+}
+
+.settings-native-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.settings-native-select {
+  min-width: min(280px, 42vw);
+  max-width: 100%;
+  min-height: 48px;
+  padding: 8px 36px 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.settings-native-select:focus,
+.settings-native-select.focused {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 2px;
+}
+
+.settings-native-select-row.is-disabled {
+  opacity: 0.55;
+}

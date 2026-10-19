@@ -17,11 +17,24 @@ export function createSettingsScreenMethods13() {
     updateSettingsRailIndicators,
     focusSettingsNode,
     isScrollContainerAtBoundary,
-    isAppearanceThemeFocusKey
+    isAppearanceThemeFocusKey,
+    isCompactLayout,
+    useUnifiedSettingsLayout
   } = internals;
 
   return {
     applyFocus() {
+      // Compact layouts show either the section list or one section; CSS
+      // picks the pane from this.
+      const unified = useUnifiedSettingsLayout() && this.integrationView === "hub";
+      this.container.dataset.settingsZone =
+        unified || this.focusZone === "content" || this.focusZone === "dialog"
+          ? unified
+            ? "content"
+            : String(this.focusZone || "nav")
+          : this.focusZone === "sidebar"
+            ? "nav"
+            : String(this.focusZone || "nav");
       this.container.querySelectorAll(".focusable.focused").forEach((node) => node.classList.remove("focused"));
       updateSettingsMarqueeTargets(this.container);
       const selectedNode = this.container.querySelector(".settings-nav-item.selected");
@@ -79,7 +92,8 @@ export function createSettingsScreenMethods13() {
       if (!this.layoutPrefs?.modernSidebar) {
         setLegacySidebarExpanded(this.container, false);
       }
-      if (this.focusZone === "content") {
+      if (this.focusZone === "content" || unified) {
+        this.focusZone = "content";
         const contentNode = this.contentFocusKey
           ? this.container.querySelector(focusKeySelector(".settings-content-focusable", this.contentFocusKey))
           : null;
@@ -95,7 +109,13 @@ export function createSettingsScreenMethods13() {
           this.contentFocusKey = String(fallbackContent.dataset.focusKey || "");
           return;
         }
-        this.focusZone = "nav";
+        if (!unified) {
+          this.focusZone = "nav";
+        }
+      }
+
+      if (unified) {
+        return;
       }
 
       const navNode =
@@ -248,7 +268,9 @@ export function createSettingsScreenMethods13() {
         return;
       }
 
-      const content = themeGrid.closest(".settings-content");
+      const content =
+        themeGrid.closest(".settings-unified-scroll") ||
+        themeGrid.closest(".settings-content");
       if (!content) {
         return;
       }
@@ -264,7 +286,25 @@ export function createSettingsScreenMethods13() {
 
       content.scrollTop += deltaY;
     },
+    async handleChangeEvent(event) {
+      const select = event?.target?.closest?.("select.settings-native-select");
+      if (!select || !this.container?.contains?.(select)) {
+        return;
+      }
+      const focusKey = String(select.dataset.nativeSelect || select.dataset.focusKey || "");
+      const handler = this.selectChangeHandlers?.get(focusKey);
+      if (typeof handler !== "function") {
+        return;
+      }
+      event?.stopPropagation?.();
+      await handler(String(select.value || ""));
+    },
     async handleClickEvent(event) {
+      if (event?.target?.closest?.(".settings-compact-back")) {
+        event?.preventDefault?.();
+        this.returnToSectionList();
+        return;
+      }
       const target = event?.target?.closest?.(
         ".settings-nav-item, .settings-content-focusable, .settings-dialog-option, [data-text-dialog-role='field']"
       );
@@ -280,6 +320,10 @@ export function createSettingsScreenMethods13() {
         }
         this.focusZone = "nav";
         await this.activateNavSelection();
+        // With one pane at a time, choosing a section opens it.
+        if (isCompactLayout()) {
+          this.enterContentZone();
+        }
         return;
       }
 

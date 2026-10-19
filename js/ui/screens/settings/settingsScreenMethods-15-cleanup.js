@@ -19,6 +19,9 @@ export function createSettingsScreenMethods15() {
       if (this.container && this.handleClickBound) {
         this.container.removeEventListener("click", this.handleClickBound);
       }
+      if (this.container && this.handleChangeBound) {
+        this.container.removeEventListener("change", this.handleChangeBound);
+      }
       const navSlot = this.container?.querySelector?.("[data-settings-nav]");
       if (navSlot && this.handleRailScrollBound) {
         navSlot.removeEventListener("scroll", this.handleRailScrollBound);
@@ -29,6 +32,8 @@ export function createSettingsScreenMethods15() {
       }
       this.handleWheelBound = null;
       this.handleClickBound = null;
+      this.handleChangeBound = null;
+      this.selectChangeHandlers = new Map();
       this.handleRailScrollBound = null;
       this.railScrollNode = null;
       this.activeSection = null;

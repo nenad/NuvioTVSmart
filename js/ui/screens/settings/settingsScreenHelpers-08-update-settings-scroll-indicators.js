@@ -147,6 +147,7 @@ export function updateSettingsScrollIndicators(container) {
   if (
     verticalFrame &&
     (container.classList?.contains("settings-content") ||
+      container.classList?.contains("settings-unified-scroll") ||
       container.classList?.contains("settings-sidebar") ||
       container.classList?.contains("settings-trakt-scroll-area"))
   ) {
@@ -177,7 +178,11 @@ export function bindSettingsScrollIndicators(root) {
     return;
   }
 
-  root.querySelectorAll?.(".settings-sidebar, .settings-content, .settings-theme-row, .settings-trakt-scroll-area").forEach((container) => {
+  root
+    .querySelectorAll?.(
+      ".settings-sidebar, .settings-content, .settings-unified-scroll, .settings-theme-row, .settings-trakt-scroll-area"
+    )
+    .forEach((container) => {
     if (!container.settingsScrollIndicatorBound) {
       container.settingsScrollIndicatorBound = true;
       container.addEventListener("scroll", () => updateSettingsScrollIndicators(container), {

@@ -11,7 +11,9 @@ export function createSettingsScreenMethods14() {
     isSelectedSidebarAction,
     isRootSidebarNode,
     clamp,
-    isSettingsActivateEvent
+    isSettingsActivateEvent,
+    isCompactLayout,
+    useUnifiedSettingsLayout
   } = internals;
 
   return {
@@ -93,14 +95,7 @@ export function createSettingsScreenMethods14() {
 
       if (zone === "nav") {
         await this.activateNavSelection();
-        const firstContent = this.container.querySelector(".settings-content-focusable");
-        if (firstContent) {
-          this.focusZone = "content";
-          this.contentFocusKey =
-            this.activeSection === "appearance" ? this.getAppearanceThemeFocusKey() : String(firstContent.dataset.focusKey || "");
-          this.rememberAppearanceThemeFocusKey(this.contentFocusKey);
-          this.applyFocus();
-        }
+        this.enterContentZone();
         return;
       }
 
@@ -281,17 +276,20 @@ export function createSettingsScreenMethods14() {
         }
 
         if (this.focusZone === "content") {
+          const unified = useUnifiedSettingsLayout() && this.integrationView === "hub";
           if (code === 38 && String(this.model?.theme?.settingsUiStyle || "CLASSIC") === "HORIZON") {
             if (!this.moveContent("up")) {
-              this.syncNavFocusToActive();
-              this.focusZone = "nav";
-              this.applyFocus();
+              if (!unified) {
+                this.syncNavFocusToActive();
+                this.focusZone = "nav";
+                this.applyFocus();
+              }
             }
             return;
           }
           if (code === 37) {
             const moved = this.moveContent("left");
-            if (!moved) {
+            if (!moved && !unified) {
               this.syncNavFocusToActive();
               this.focusZone = "nav";
               this.applyFocus();
@@ -320,7 +318,23 @@ export function createSettingsScreenMethods14() {
       event?.preventDefault?.();
       await this.activateFocused();
     },
-    consumeBackRequest() {
+    enterContentZone() {
+      const firstContent = this.container.querySelector(".settings-content-focusable");
+      if (!firstContent) {
+        return false;
+      }
+      this.focusZone = "content";
+      this.contentFocusKey =
+        this.activeSection === "appearance" ? this.getAppearanceThemeFocusKey() : String(firstContent.dataset.focusKey || "");
+      this.rememberAppearanceThemeFocusKey(this.contentFocusKey);
+      this.applyFocus();
+      return true;
+    },
+    returnToSectionList() {
+      this.focusZone = "nav";
+      this.applyFocus();
+    },
+    consumeBackRequest({ source = "" } = {}) {
       if (this.textDialog) {
         this.closeTextDialog();
         void this.render({ refreshModel: false });
@@ -330,6 +344,27 @@ export function createSettingsScreenMethods14() {
         this.closeOptionDialog();
         void this.render({ refreshModel: false });
         return true;
+      }
+      // Compact layouts show one pane at a time, so Back from a section
+      // returns to the section list rather than to the navigation.
+      if (
+        this.focusZone === "content" &&
+        isCompactLayout() &&
+        !(useUnifiedSettingsLayout() && this.integrationView === "hub")
+      ) {
+        this.returnToSectionList();
+        return true;
+      }
+      if (useUnifiedSettingsLayout() && this.integrationView !== "hub") {
+        this.integrationView = "hub";
+        void this.render({ refreshModel: false });
+        return true;
+      }
+      // The browser has already moved back in its history. Opening the
+      // sidebar would leave the page there, and exitApp cannot close a tab,
+      // so let the router follow the history entry instead.
+      if (source === "history" && Platform.isBrowser()) {
+        return false;
       }
       if (this.focusZone === "sidebar") {
         Platform.exitApp();

@@ -54,6 +54,7 @@ export function createAuthQrSignInScreenMethods03() {
       });
     },
     setStatus(text) {
+      this.qrStatusText = text;
       const statusNode = this.container?.querySelector("#qr-status");
       if (statusNode) statusNode.innerText = text;
     },
@@ -133,35 +134,75 @@ export function createAuthQrSignInScreenMethods03() {
         // explicit onboarding action (or after a real account is restored).
         AuthManager.clearAnonymousSession?.();
       }
-      this.cleanup();
       if (!this.onboardingMode && this.hasBackDestination) {
-        Router.back();
+        Router.back({ skipConsume: true, skipHistory: true });
         return;
       }
+      this.cleanup();
       Router.navigate("home", {}, { replaceHistory: true, skipStackPush: true });
     },
     leaveAuthScreen() {
       if (this.isLeaving) return;
       this.isLeaving = true;
       this.updateActionButtons();
-      this.cleanup();
       if (this.onboardingMode) {
         // Android finishes the onboarding activity on hardware Back. Do not
         // silently turn Back into the explicit guest opt-in action.
+        this.cleanup();
         Platform.exitApp();
         return;
       }
-      Router.back({ skipConsume: true });
+      // Pop the stack directly: cleanup runs inside Router.back and the next
+      // screen mounts before this overlay is torn down, so Safari does not sit
+      // on an empty #account pane while waiting for popstate.
+      Router.back({ skipConsume: true, skipHistory: true });
+    },
+    // A QR code asks for a second device to scan it. On a touch screen this
+    // is most likely the phone that would do the scanning, so offer the
+    // sign-in page as a link instead.
+    opensSignInLink() {
+      if (!Platform.isBrowser()) return false;
+      try {
+        return Boolean(globalThis.matchMedia?.("(pointer: coarse)")?.matches);
+      } catch (_) {
+        return false;
+      }
+    },
+    // The sign-in link shows only errors: no QR progress, and no expiry,
+    // since it renews itself.
+    setProgressStatus(text) {
+      this.setStatus(this.opensSignInLink() ? "" : text);
+    },
+    handleQrExpired() {
+      if (this.opensSignInLink()) {
+        void this.startQr();
+        return;
+      }
+      this.setStatus(I18n.t("auth.qr.expired"));
     },
     getLeftDescription() {
       if (this.isSignedIn) return I18n.t("auth.qr.leftDescriptionSignedIn");
       if (this.useEmailLogin) return I18n.t("auth.email.hint");
+      if (this.opensSignInLink()) return I18n.t("auth.qr.linkDescription");
       return I18n.t("auth.qr.leftDescriptionSignedOut");
     },
     getCardSubtitle() {
       if (this.isSignedIn) return I18n.t("auth.qr.cardSubtitleSignedIn");
       if (this.useEmailLogin) return I18n.t("auth.email.instruction");
+      if (this.opensSignInLink()) return I18n.t("auth.qr.linkInstruction");
       return I18n.t("auth.qr.cardSubtitleSignedOut");
+    },
+    renderLoginInstruction() {
+      const instruction = this.isSignedIn
+        ? I18n.t("auth.qr.syncedData")
+        : this.useEmailLogin
+          ? I18n.t("auth.email.instruction")
+          : this.opensSignInLink()
+            ? I18n.t("auth.qr.linkInstruction")
+            : I18n.t("auth.qr.scanInstruction");
+      // Signed out, the card subtitle is this same string; say it once.
+      if (instruction === this.getCardSubtitle()) return "";
+      return `<p class="qr-login-instruction">${instruction}</p>`;
     },
     getBackButtonLabel() {
       if (this.onboardingMode && !this.isSignedIn) {
@@ -213,7 +254,7 @@ export function createAuthQrSignInScreenMethods03() {
 
       const current = navigationContainer?.querySelector(".focusable.focused");
       const action = current?.dataset?.action || "";
-      if (action) {
+      if (action && action !== "email-input" && action !== "password-input") {
         // webOS pointer remotes synthesize a click for a focused control
         // when OK is pressed. If the partner event already activated
         // within the dedupe window, drop this one; otherwise activate
@@ -275,7 +316,14 @@ export function createAuthQrSignInScreenMethods03() {
       this.isMounted = false;
       this.isLeaving = true;
       this.showSignOutConfirmation = false;
+      if (this.boundResumeQrPoll) {
+        globalThis.document?.removeEventListener?.("visibilitychange", this.boundResumeQrPoll);
+        this.boundResumeQrPoll = null;
+      }
       this.stopIntervals();
+      this.lastActivationAt = 0;
+      this.qrResult = null;
+      this.qrStatusText = "";
       if (this.container) ScreenUtils.hide(this.container);
       this.container = null;
     }

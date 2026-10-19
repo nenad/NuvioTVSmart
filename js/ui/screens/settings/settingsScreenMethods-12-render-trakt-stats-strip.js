@@ -29,7 +29,10 @@ export function createSettingsScreenMethods12() {
     updateSettingsRailIndicators,
     updateSettingsRailIndicatorsSoon,
     captureSettingsScrollState,
-    restoreSettingsScrollState
+    restoreSettingsScrollState,
+    useUnifiedSettingsLayout,
+    getUnifiedMainSections,
+    getUnifiedExpertSections
   } = internals;
 
   return {
@@ -193,6 +196,51 @@ export function createSettingsScreenMethods12() {
       if (section.id === "advanced") return this.renderAdvancedSection(model);
       return this.renderAboutSection(model);
     },
+    renderUnifiedSettingsBody(model) {
+      const mainSections = getUnifiedMainSections(this.visibleSections);
+      const expertSections = getUnifiedExpertSections(this.visibleSections);
+      const mainHtml = mainSections
+        .map(
+          (section) => `
+            <section class="settings-unified-section" aria-labelledby="settings-group-${escapeHtml(section.id)}">
+              ${this.renderSection(section, model)}
+            </section>
+          `
+        )
+        .join("");
+      const expertHtml = expertSections.length
+        ? `
+            <div class="settings-unified-expert-divider" role="separator">
+              <h2 class="settings-unified-expert-heading">${escapeHtml(t("settings_unified_expert_heading", {}, "Advanced"))}</h2>
+              <p class="settings-unified-expert-copy">${escapeHtml(
+                t(
+                  "settings_unified_expert_subtitle",
+                  {},
+                  "Add-ons, stream rules, plugins, and other options you rarely change."
+                )
+              )}</p>
+            </div>
+            ${expertSections
+              .map(
+                (section) => `
+                  <section class="settings-unified-section" aria-labelledby="settings-group-${escapeHtml(section.id)}">
+                    ${this.renderSection(section, model)}
+                  </section>
+                `
+              )
+              .join("")}
+          `
+        : "";
+      return `
+          <header class="settings-unified-page-header">
+            <h1 class="settings-unified-page-title">${escapeHtml(t("sidebar.settings", {}, "Settings"))}</h1>
+          </header>
+          <div class="settings-unified-scroll" data-settings-unified-scroll>
+            ${mainHtml}
+            ${expertHtml}
+          </div>
+        `;
+    },
     async render({ refreshModel = true } = {}) {
       if (refreshModel || !this.model) {
         this.model = await this.collectModel();
@@ -201,10 +249,15 @@ export function createSettingsScreenMethods12() {
       this.sidebarExpanded = Boolean(this.layoutPrefs?.modernSidebar && this.sidebarExpanded);
       this.visibleSections = getVisibleSections(this.model);
       this.actionMap = new Map();
+      this.selectChangeHandlers = new Map();
       if (!this.visibleSections.length) {
         this.visibleSections = [SECTION_META.find((item) => item.id === "appearance") || SECTION_META[0]];
       }
-      if (!this.visibleSections.some((section) => section.id === this.activeSection)) {
+      const unified = useUnifiedSettingsLayout() && this.integrationView === "hub";
+      if (useUnifiedSettingsLayout() && this.integrationView && this.integrationView !== "hub") {
+        this.activeSection = "integration";
+      }
+      if (!unified && !this.visibleSections.some((section) => section.id === this.activeSection)) {
         this.setActiveSection(this.visibleSections[0]?.id || "appearance");
       }
       this.navIndex = clamp(
@@ -216,13 +269,18 @@ export function createSettingsScreenMethods12() {
         getSettingsSectionById(this.activeSection) ||
         this.visibleSections.find((item) => item.id === this.activeSection) ||
         this.visibleSections[0];
-      this.ensureExpandedState(section.id);
+      if (!unified) {
+        this.ensureExpandedState(section.id);
+      } else {
+        this.visibleSections.forEach((entry) => this.ensureExpandedState(entry.id));
+      }
       this.persistUiState();
 
       this.ensureShell();
 
       const shell = this.container.querySelector(".settings-shell");
       if (shell) {
+        shell.classList.toggle("settings-shell--unified", unified);
         shell.dataset.settingsStyle = String(this.model.theme.settingsUiStyle || "CLASSIC").toLowerCase();
         const enterClass = ScreenUtils.routeEnterClass(this, this.settingsRouteEnterPending, " settings-route-enter");
         shell.classList.toggle("settings-route-enter", enterClass === " settings-route-enter");
@@ -250,9 +308,13 @@ export function createSettingsScreenMethods12() {
         rootSidebarSlot.innerHTML = rootSidebarHtml;
       }
 
-      const navHtml = this.renderNav();
-      if (navSlot && navSlot.innerHTML !== navHtml) {
-        navSlot.innerHTML = navHtml;
+      if (!unified) {
+        const navHtml = this.renderNav();
+        if (navSlot && navSlot.innerHTML !== navHtml) {
+          navSlot.innerHTML = navHtml;
+        }
+      } else if (navSlot) {
+        navSlot.innerHTML = "";
       }
       if (navSlot && this.railScrollNode !== navSlot) {
         if (this.railScrollNode && this.handleRailScrollBound) {
@@ -277,21 +339,17 @@ export function createSettingsScreenMethods12() {
       updateSettingsRailIndicatorsSoon(navSlot);
       updateSettingsScrollIndicatorsSoon(navSlot);
 
-      const sectionChanged = this.renderedSectionId !== section.id;
+      const sectionChanged = unified ? this.renderedSectionId !== "unified" : this.renderedSectionId !== section.id;
       const previousScrollState = !sectionChanged ? captureSettingsScrollState(contentSlot) : null;
-      this.renderedSectionId = section.id;
+      this.renderedSectionId = unified ? "unified" : section.id;
       if (contentSlot) {
-        contentSlot.innerHTML = this.renderSection(section, this.model);
+        contentSlot.innerHTML = unified
+          ? this.renderUnifiedSettingsBody(this.model)
+          : this.renderSection(section, this.model);
         if (previousScrollState) {
           restoreSettingsScrollState(contentSlot, previousScrollState);
         }
-        if (sectionChanged) {
-          contentSlot.classList.remove("is-section-transitioning");
-          void contentSlot.offsetWidth;
-          contentSlot.classList.add("is-section-transitioning");
-        } else {
-          contentSlot.classList.remove("is-section-transitioning");
-        }
+        contentSlot.classList.remove("is-section-transitioning");
       }
 
       const dialogHtml = this.optionDialog ? this.renderOptionDialog() : this.renderTextDialog();
@@ -314,7 +372,7 @@ export function createSettingsScreenMethods12() {
       this.applyFocus();
       syncLayoutPreviewMetricsSoon(this.container);
       updateSettingsRailIndicatorsSoon(navSlot);
-      updateSettingsScrollIndicatorsSoon(contentSlot);
+      updateSettingsScrollIndicatorsSoon(unified ? contentSlot?.querySelector(".settings-unified-scroll") : contentSlot);
     }
   };
 }

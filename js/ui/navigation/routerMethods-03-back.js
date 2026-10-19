@@ -38,6 +38,7 @@ export function createRouterMethods03() {
           this.routes[this.current].cleanup?.();
           this.current = "home";
           this.currentParams = {};
+          this.syncRouteAttribute();
           await this.routes.home.mount(
             {},
             {
@@ -66,6 +67,7 @@ export function createRouterMethods03() {
       this.routes[this.current].cleanup?.();
       this.current = previousRoute;
       this.currentParams = previousParams;
+      this.syncRouteAttribute();
       const navigationContext = this.resolveNavigationContext(previousRoute, previousParams, {
         isBackNavigation: true,
         previousRoute: fromRoute
@@ -76,6 +78,14 @@ export function createRouterMethods03() {
     },
     getCurrent() {
       return this.current;
+    },
+    // Lets stylesheets tell screens apart, for example to show a browser's
+    // on-screen Back only where there is somewhere to go back to.
+    syncRouteAttribute() {
+      const root = globalThis.document?.documentElement;
+      if (root?.dataset) {
+        root.dataset.route = String(this.current || "");
+      }
     },
     getCurrentScreen() {
       if (!this.current) {

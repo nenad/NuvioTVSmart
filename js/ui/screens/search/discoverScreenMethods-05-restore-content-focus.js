@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { isCompactLayout } from "../../theme/compactLayout.js";
 import * as internals from "./discoverScreen.js";
 
 export function createDiscoverScreenMethods05() {
@@ -197,7 +198,10 @@ export function createDiscoverScreenMethods05() {
     render() {
       this.cancelScheduledRender();
       this.layoutPrefs = LayoutPreferences.get();
-      const showRootSidebar = this.isSidebarRootRoute();
+      // Compact layouts always get the bottom tab bar. TV layout only when
+      // Discover is a sidebar destination, not when it was opened from Search.
+      const showRootSidebar = isCompactLayout() || this.isSidebarRootRoute();
+      const showBrowserBack = !this.isSidebarRootRoute();
       const openPicker = this.openPicker || null;
       if (this.lastRenderedOpenPicker && this.lastRenderedOpenPicker !== openPicker) {
         this.startClosingPicker(this.lastRenderedOpenPicker);
@@ -219,8 +223,9 @@ export function createDiscoverScreenMethods05() {
       const enterClass = ScreenUtils.routeEnterClass(this, this.discoverRouteEnterPending, " nuvio-route-slide-enter");
       this.discoverRouteEnterPending = false;
 
+      const loadedPosters = this.captureLoadedDiscoverPosters();
       this.container.innerHTML = `
-          <div class="home-shell search-screen-shell discover-shell${showRootSidebar ? " discover-root-route" : ""}">
+          <div class="home-shell search-screen-shell discover-shell${showRootSidebar ? " discover-has-tabbar" : ""}${this.isSidebarRootRoute() ? " discover-root-route" : ""}${showBrowserBack ? " discover-from-search" : ""}">
             ${
               showRootSidebar
                 ? renderRootSidebar({
@@ -250,6 +255,7 @@ export function createDiscoverScreenMethods05() {
           </div>
         `;
 
+      this.restoreLoadedDiscoverPosters(loadedPosters);
       ScreenUtils.indexFocusables(this.container);
       this.buildNavigationModel();
       if (showRootSidebar) {
@@ -262,6 +268,10 @@ export function createDiscoverScreenMethods05() {
       this.bindCardEvents();
       this.bindShellEvents();
       this.bindPointerEvents();
+      const root = globalThis.document?.documentElement;
+      if (root?.dataset) {
+        root.dataset.discoverFromSearch = showBrowserBack ? "true" : "false";
+      }
       this.scheduleDiscoverPosterHydration();
       if (this.pendingRestoreFocus) {
         const scrollMode = this.preserveViewportOnNextRender ? "none" : "center";
@@ -284,6 +294,35 @@ export function createDiscoverScreenMethods05() {
         this.restoreContentFocus({ scrollMode });
       }
       this.syncOpenPickerScroll();
+    },
+    captureLoadedDiscoverPosters() {
+      // Keep decoded image nodes across grid/shell rebuilds. A new data-src
+      // image otherwise blanks an already visible poster until hydration.
+      const posters = new Map();
+      this.container?.querySelectorAll(".discover-card .seeall-card-poster-image").forEach((image) => {
+        if (!(image instanceof HTMLImageElement) || !image.complete || image.naturalWidth <= 0) {
+          return;
+        }
+        const card = image.closest(".discover-card");
+        const src = image.getAttribute("src");
+        if (src) {
+          const key = JSON.stringify([card.dataset.itemType, card.dataset.itemId, src]);
+          posters.set(key, image);
+        }
+      });
+      return posters;
+    },
+    restoreLoadedDiscoverPosters(posters) {
+      this.container?.querySelectorAll(".discover-card .seeall-card-poster-image[data-src]").forEach((image) => {
+        const card = image.closest(".discover-card");
+        const key = JSON.stringify([card.dataset.itemType, card.dataset.itemId, image.dataset.src]);
+        const loadedImage = posters.get(key);
+        if (loadedImage) {
+          loadedImage.alt = image.alt;
+          image.parentNode.replaceChild(loadedImage, image);
+          posters.delete(key);
+        }
+      });
     },
     scheduleDiscoverPosterHydration() {
       if (!this.container || this.discoverPosterHydrationRaf) {

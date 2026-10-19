@@ -177,7 +177,8 @@ export function createRouterMethods01() {
           state?.route === "stream" &&
           currentScreen?.shouldReturnToStreamOnBack?.() !== false &&
           !currentScreen?.hasBackDismissableOverlay?.();
-        const consumeResult = !shouldSkipConsume && !shouldLetPlayerReturnToStream ? currentScreen?.consumeBackRequest?.() : false;
+        const consumeResult =
+          !shouldSkipConsume && !shouldLetPlayerReturnToStream ? currentScreen?.consumeBackRequest?.({ source: "history" }) : false;
         if (consumeResult) {
           if (consumeResult !== "history") {
             this.restoreCurrentHistoryState(state);

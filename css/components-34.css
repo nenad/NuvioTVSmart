@@ -96,6 +96,14 @@
   pointer-events: none;
 }
 
+/* The player's UI layer passes pointers through to the video, so an open
+   dialog or panel has to take them back; otherwise taps and Magic Remote clicks land
+   on the backdrop behind it. */
+.player-modal:not(.hidden),
+.player-sources-panel:not(.hidden) {
+  pointer-events: auto;
+}
+
 .player-subtitle-modal,
 .player-audio-modal {
   left: 44px;

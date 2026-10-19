@@ -8,7 +8,10 @@ export function createMetaDetailsScreenMethods17() {
     DETAIL_SCROLL_STIFFNESS,
     DETAIL_SCROLL_DAMPING_RATIO,
     DETAIL_SCROLL_MAX_FRAME_SECONDS,
-    escapeSelectorValue
+    escapeSelectorValue,
+    isCompactLayout,
+    isTouchScreen,
+    Platform
   } = internals;
 
   return {
@@ -131,6 +134,12 @@ export function createMetaDetailsScreenMethods17() {
       const focused = this.container?.querySelector(".focusable.focused") || null;
       return Boolean(
         this.trailerHasAutoplayed ||
+        // On a phone the idle time is spent reading or scrolling by touch,
+        // which does not reset the timer, and the trailer would take over
+        // the screen. The trailer button still plays it.
+        Platform.isBrowser() ||
+        isCompactLayout() ||
+        isTouchScreen() ||
         !content ||
         Number(content.scrollTop || 0) > 160 ||
         !focused?.matches?.('.series-detail-actions [data-action="playDefault"]') ||

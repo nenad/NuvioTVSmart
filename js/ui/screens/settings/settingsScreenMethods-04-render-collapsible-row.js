@@ -2,9 +2,39 @@
 import * as internals from "./settingsScreenContext.js";
 
 export function createSettingsScreenMethods04() {
-  const { Router, AuthManager, renderLoadingIndicator, SECTION_META, ROW_ICONS, t, escapeHtml, iconSvg } = internals;
+  const {
+    Router,
+    AuthManager,
+    renderLoadingIndicator,
+    SECTION_META,
+    ROW_ICONS,
+    t,
+    escapeHtml,
+    iconSvg,
+    isTouchScreen,
+    Platform
+  } = internals;
 
   return {
+    usesTouchSignInLink() {
+      return Boolean(Platform.isBrowser() && isTouchScreen());
+    },
+    getAccountSignInActionTitle() {
+      if (this.usesTouchSignInLink()) {
+        return t("account_signin_touch_title", {}, "Sign In");
+      }
+      return t("account_signin_qr_title", {}, "Sign In with QR");
+    },
+    getAccountSignInActionSubtitle() {
+      if (this.usesTouchSignInLink()) {
+        return t(
+          "account_signin_touch_subtitle",
+          {},
+          "Open the sign-in page in your browser, approve, then return here"
+        );
+      }
+      return t("account_signin_qr_subtitle", {}, "Scan a QR code and complete email login on your phone");
+    },
     renderCollapsibleRow({ focusKey, title, subtitle, expanded, bodyHtml = "", classes = "" }) {
       return `
           <div class="settings-collapsible${classes ? ` ${classes}` : ""}${expanded ? " is-open" : ""}">
@@ -86,8 +116,8 @@ export function createSettingsScreenMethods04() {
                 ${this.renderAccountActionButton({
                   focusKey: "account:signin",
                   icon: "vpn_key",
-                  title: t("account_signin_qr_title", {}, "Sign In with QR"),
-                  subtitle: t("account_signin_qr_subtitle", {}, "Scan a QR code and complete email login on your phone")
+                  title: this.getAccountSignInActionTitle(),
+                  subtitle: this.getAccountSignInActionSubtitle()
                 })}
               `
                   : ""

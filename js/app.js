@@ -27,6 +27,9 @@ import { I18n } from "./i18n/index.js";
 import { getLatestAppUpdateWithRetry } from "./core/update/appUpdateService.js";
 import { shouldShowUpdate } from "./core/update/updateBannerPolicy.js";
 import { showAppUpdatePrompt } from "./ui/components/appUpdatePrompt.js";
+import { mountBrowserBackButton } from "./ui/components/browserBackButton.js";
+import { installCompactLayoutTransitionGuard } from "./ui/theme/compactLayout.js";
+import { installTouchHold } from "./ui/navigation/touchHold.js";
 import { resolveExperienceRoute } from "./core/profile/experienceModeRouting.js";
 import { PluginRuntime } from "./core/player/pluginRuntime.js";
 
@@ -485,6 +488,21 @@ function setupProviderCredentialForegroundLifecycle() {
   window.addEventListener("focus", requestAfterBackground);
 }
 
+function setupTizenPlaybackLifecycle() {
+  if (!Platform.isTizen()) return;
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "hidden" || Router.getCurrent() !== "player") return;
+
+    // Samsung requires hidden playback to follow the player exit path.
+    // Do not consume a regular Back: it can merely dismiss an overlay and
+    // leave playback running. Reuse the existing stop/progress/return path.
+    const screen = Router.getCurrentScreen();
+    screen?.cancelSourceLoad?.();
+    screen?.navigateBackToStreamScreen?.();
+  });
+}
+
 function setupPluginRuntimeLifecycle() {
   const cancel = () => PluginRuntime.cancelAll();
   document.addEventListener("visibilitychange", () => {
@@ -564,7 +582,11 @@ async function bootstrapApp() {
   PlayerController.init();
 
   FocusEngine.init();
+  mountBrowserBackButton();
+  installCompactLayoutTransitionGuard();
+  installTouchHold();
   setupProviderCredentialForegroundLifecycle();
+  setupTizenPlaybackLifecycle();
   setupPluginRuntimeLifecycle();
   setupWebOsAppLifecycle();
 

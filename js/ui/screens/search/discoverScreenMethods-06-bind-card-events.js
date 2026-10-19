@@ -333,6 +333,10 @@ export function createDiscoverScreenMethods06() {
       return false;
     },
     cleanup() {
+      const root = globalThis.document?.documentElement;
+      if (root?.dataset?.discoverFromSearch) {
+        delete root.dataset.discoverFromSearch;
+      }
       this.loadToken = (this.loadToken || 0) + 1;
       resetDpadRepeat(this);
       this.endDiscoverVerticalFastScroll({ land: false });
